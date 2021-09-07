@@ -1,8 +1,9 @@
 import { createApiRef, DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
-import { Dashboard } from './types';
+import { Alert, Dashboard } from './types';
 
 export interface GrafanaApi {
   dashboardsByTag(tag: string): Promise<Dashboard[]>;
+  alertsByDashboardTag(tag: string): Promise<Alert[]>;
 }
 
 export const grafanaApiRef = createApiRef<GrafanaApi>({
@@ -60,6 +61,20 @@ export class GrafanaApiClient implements GrafanaApi {
       {
         title: dashboard.title,
         url: this.domain + dashboard.url,
+      }
+    ));
+  }
+
+  async alertsByDashboardTag(tag: string): Promise<Alert[]> {
+    const response = await this.fetch<Alert[]>(`/api/alerts?dashboardTag=${tag}`);
+
+    return response.map(alert => (
+      {
+        id: alert.id,
+        panelId: alert.panelId,
+        name: alert.name,
+        state: alert.state,
+        url: this.domain + alert.url,
       }
     ));
   }

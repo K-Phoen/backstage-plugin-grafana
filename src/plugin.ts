@@ -26,3 +26,13 @@ export const EntityGrafanaDashboardsCard = grafanaPlugin.provide(
     },
   })
 );
+
+export const EntityGrafanaAlertsCard = grafanaPlugin.provide(
+  createComponentExtension({
+    component: {
+      lazy: () =>
+        import('./components/AlertsCard').then(m => m.AlertsCard
+      ),
+    },
+  })
+);

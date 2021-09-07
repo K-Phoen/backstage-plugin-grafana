@@ -1,1 +1,1 @@
-export { grafanaPlugin, EntityGrafanaDashboardsCard } from './plugin';
+export { grafanaPlugin, EntityGrafanaDashboardsCard, EntityGrafanaAlertsCard } from './plugin';
