@@ -25,7 +25,7 @@ import { Alert } from '@material-ui/lab';
 import { Link } from '@material-ui/core';
 import { Dashboard } from '../../types';
 
-const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashboards: Dashboard[] }) => {
+export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashboards: Dashboard[] }) => {
   const columns: TableColumn<Dashboard>[] = [
     {
       title: 'Title',
