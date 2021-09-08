@@ -1,7 +1,12 @@
 # Grafana plugin for Backstage
 
-Welcome to the grafana plugin!
+Welcome to the Grafana plugin!
 
+Service alerts card:
+![Alerts card](./docs/alerts_card.png)
+
+Service dashboards card:
+![Dashboards card](./docs/dashboards_card.png)
 
 ## Plugin Setup
 
