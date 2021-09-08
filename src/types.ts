@@ -17,6 +17,8 @@
 export interface Dashboard {
   title: string;
   url: string;
+  folderTitle: string;
+  folderUrl: string;
 }
 
 export interface Alert {

@@ -77,6 +77,8 @@ export class GrafanaApiClient implements GrafanaApi {
       {
         title: dashboard.title,
         url: this.domain + dashboard.url,
+        folderTitle: dashboard.folderTitle,
+        folderUrl: this.domain + dashboard.folderUrl,
       }
     ));
   }
