@@ -1,13 +1,64 @@
-# grafana
+# Grafana plugin for Backstage
 
 Welcome to the grafana plugin!
 
-_This plugin was created through the Backstage CLI_
 
-## Getting started
+## Plugin Setup
 
-Your plugin has been added to the example app in this repository, meaning you'll be able to access it by running `yarn start` in the root directory, and then navigating to [/grafana](http://localhost:3000/grafana).
+1. If you have standalone app (you didn't clone this repository), then do:
 
-You can also serve the plugin in isolation by running `yarn start` in the plugin directory.
-This method of serving the plugin provides quicker iteration speed and a faster startup and hot reloads.
-It is only meant for local development, and the setup for it can be found inside the [/dev](./dev) directory.
+```bash
+yarn add @k-phoen/backstage-plugin-grafana
+```
+
+2. Configure the plugin:
+
+```yaml
+
+proxy:
+  '/grafana/api':
+    # May be an internal DNS
+    target: https://grafana.host/
+    headers:
+      Authorization: ${GRAFANA_TOKEN}
+
+grafana:
+  # Publicly accessible domain
+  domain: https://monitoring.company.com
+```
+
+**Note:** the `GRAFANA_TOKEN` environment variable follows the `Bearer [API KEY]` pattern.
+
+3. Expose the plugin to your Backstage instance:
+
+```ts
+// packages/app/src/plugins.tsx
+
+// other plugins
+
+export { grafanaPlugin } from '@k-phoen/backstage-plugin-grafana';
+```
+
+4. Add it to the `EntityPage.tsx`:
+
+```ts
+import {
+  EntityGrafanaAlertsCard,
+  EntityGrafanaDashboardsCard,
+} from '@k-phoen/backstage-plugin-grafana';
+
+// add wherever you want to display the dashboards and alerts card:
+<Grid container>
+  <Grid item md={6}>
+    <EntityGrafanaDashboardsCard />
+  </Grid>
+
+  <Grid item md={6}>
+    <EntityGrafanaAlertsCard />
+  </Grid>
+</Grid>
+```
+
+## License
+
+This library is under the [Apache 2.0](LICENSE) license.
