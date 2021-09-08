@@ -1,5 +1,5 @@
 node_modules
-dist
+dist*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
