@@ -22,22 +22,30 @@ import { useApi } from '@backstage/core-plugin-api';
 import { grafanaApiRef } from '../../api';
 import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
-import { Link } from '@material-ui/core';
+import { Link, Tooltip } from '@material-ui/core'
 import { Dashboard } from '../../types';
 
 export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashboards: Dashboard[] }) => {
   const columns: TableColumn<Dashboard>[] = [
     {
       title: 'Title',
-      highlight: true,
-      render: (row: Dashboard): React.ReactNode => <Link href={row.url} target="_blank" rel="noopener">{row.title}</Link>,
+      render: (row: Dashboard) => <Link href={row.url} target="_blank" rel="noopener">{row.title}</Link>,
+    },
+    {
+      title: 'Folder',
+      render: (row: Dashboard) => <Link href={row.folderUrl} target="_blank" rel="noopener">{row.folderTitle}</Link>,
     },
   ];
 
+  const title = (
+    <Tooltip title={`Note: only dashboard with the "${entity.metadata.name}" tag are displayed.`}>
+      <span>Dashboards</span>
+    </Tooltip>
+  );
+
   return (
     <Table
-      title="Dashboards"
-      subtitle={`Note: only dashboard with the "${entity.metadata.name}" tag are displayed.`}
+      title={title}
       options={{ paging: false, search: false, sorting: false, draggable: false, padding: 'dense' }}
       data={dashboards}
       columns={columns}
