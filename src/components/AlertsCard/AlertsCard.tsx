@@ -51,7 +51,7 @@ const AlertStatusBadge = ({ alert }: { alert: GrafanaAlert }) => {
   );
 };
 
-const AlertsTable = ({ alerts }: { alerts: GrafanaAlert[] }) => {
+export const AlertsTable = ({ alerts }: { alerts: GrafanaAlert[] }) => {
   const columns: TableColumn<GrafanaAlert>[] = [
     {
       title: 'Name',

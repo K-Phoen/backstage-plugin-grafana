@@ -16,26 +16,27 @@
 
 import React from 'react';
 import { render } from '@testing-library/react';
-import { DashboardsCard } from './DashboardsCard';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
-import { msw } from '@backstage/test-utils';
+import { DashboardsTable } from './DashboardsCard';
 
-describe('DashboardsCard', () => {
-  const server = setupServer();
-  // Enable sane handlers for network requests
-  msw.setupDefaultHandlers(server);
+describe('DashboardsTable', () => {
+  const entityMock = {
+    metadata: {
+      namespace: 'default',
+      annotations: {},
+      name: 'mocked-service',
+    },
+    apiVersion: 'backstage.io/v1alpha1',
+    kind: 'Component',
+    spec: {
+      type: 'service',
+      owner: 'John Doe',
+      lifecycle: 'experimental',
+    },
+  }
 
-  // setup mock response
-  beforeEach(() => {
-    server.use(
-      rest.get('https://randomuser.me/*', (_, res, ctx) =>
-        res(ctx.status(200), ctx.delay(2000), ctx.json({})),
-      ),
-    );
-  });
-  it('should render', async () => {
-    const rendered = render(<DashboardsCard />);
-    expect(await rendered.findByTestId('progress')).toBeInTheDocument();
+  it('should render even with no dashboards', async () => {
+    const rendered = render(<DashboardsTable dashboards={[]} entity={entityMock} />);
+
+    expect(await rendered.findByText('No records to display')).toBeInTheDocument();
   });
 });
