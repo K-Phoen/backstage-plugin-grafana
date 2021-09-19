@@ -19,7 +19,6 @@ yarn add @k-phoen/backstage-plugin-grafana
 2. Configure the plugin:
 
 ```yaml
-
 proxy:
   '/grafana/api':
     # May be an internal DNS
@@ -63,6 +62,21 @@ import {
   </Grid>
 </Grid>
 ```
+
+## Component configuration
+
+Add an annotation to the YAML config file of a component.
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: example
+  annotations:
+    grafana/tag-selector: <tag>
+```
+
+This plugin will then display dashboards and alerts matching the given tag.
 
 ## License
 

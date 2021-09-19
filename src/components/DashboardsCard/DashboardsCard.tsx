@@ -15,7 +15,7 @@
  */
 
 import React from 'react';
-import { Progress, ErrorBoundary, TableColumn, Table } from '@backstage/core-components';
+import { Progress, ErrorBoundary, TableColumn, Table, MissingAnnotationEmptyState } from '@backstage/core-components';
 import { Entity } from '@backstage/catalog-model';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi } from '@backstage/core-plugin-api';
@@ -24,6 +24,7 @@ import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
 import { Link, Tooltip } from '@material-ui/core'
 import { Dashboard } from '../../types';
+import { GRAFANA_ANNOTATION_TAG_SELECTOR, isGrafanaAvailable, tagSelectorFromEntity } from '../grafanaData';
 
 export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashboards: Dashboard[] }) => {
   const columns: TableColumn<Dashboard>[] = [
@@ -38,7 +39,7 @@ export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashbo
   ];
 
   const title = (
-    <Tooltip title={`Note: only dashboard with the "${entity.metadata.name}" tag are displayed.`}>
+    <Tooltip title={`Note: only dashboard with the "${tagSelectorFromEntity(entity)}" tag are displayed.`}>
       <span>Dashboards</span>
     </Tooltip>
   );
@@ -55,7 +56,7 @@ export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashbo
 
 const Dashboards = ({ entity }: { entity: Entity }) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(entity.metadata.name));
+  const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(tagSelectorFromEntity(entity)));
 
   if (loading) {
     return <Progress />;
@@ -71,7 +72,9 @@ const Dashboards = ({ entity }: { entity: Entity }) => {
 export const DashboardsCard = () => {
   const { entity } = useEntity();
 
-  return (
+  return !isGrafanaAvailable(entity) ? (
+    <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
+  ) : (
     <ErrorBoundary>
       <Dashboards entity={entity} />
     </ErrorBoundary>
