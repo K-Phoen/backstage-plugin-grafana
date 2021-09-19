@@ -15,7 +15,7 @@
  */
 
 import React from 'react';
-import { Progress, ErrorBoundary, TableColumn, Table, StatusOK, StatusPending, StatusWarning, StatusError, StatusAborted } from '@backstage/core-components';
+import { Progress, ErrorBoundary, TableColumn, Table, StatusOK, StatusPending, StatusWarning, StatusError, StatusAborted, MissingAnnotationEmptyState } from '@backstage/core-components';
 import { Entity } from '@backstage/catalog-model';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi } from '@backstage/core-plugin-api';
@@ -24,6 +24,7 @@ import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
 import { Link } from '@material-ui/core';
 import { Alert as GrafanaAlert } from '../../types';
+import { GRAFANA_ANNOTATION_TAG_SELECTOR, isGrafanaAvailable, tagSelectorFromEntity } from '../grafanaData';
 
 const AlertStatusBadge = ({ alert }: { alert: GrafanaAlert }) => {
   let statusElmt: React.ReactElement;
@@ -76,7 +77,7 @@ export const AlertsTable = ({ alerts }: { alerts: GrafanaAlert[] }) => {
 
 const Alerts = ({ entity }: { entity: Entity }) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.alertsByDashboardTag(entity.metadata.name));
+  const { value, loading, error } = useAsync(async () => await grafanaApi.alertsByDashboardTag(tagSelectorFromEntity(entity)));
 
   if (loading) {
     return <Progress />;
@@ -92,7 +93,9 @@ const Alerts = ({ entity }: { entity: Entity }) => {
 export const AlertsCard = () => {
   const { entity } = useEntity();
 
-  return (
+  return !isGrafanaAvailable(entity) ? (
+    <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
+  ) : (
     <ErrorBoundary>
       <Alerts entity={entity} />
     </ErrorBoundary>
