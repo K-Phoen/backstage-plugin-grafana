@@ -1,0 +1,11 @@
+site_name: 'Backstage Grafana plugin'
+site_description: 'List Grafana alerts and dashboards inside Backstage'
+
+nav:
+  - Home: index.md
+  - Setup: setup.md
+  - 'Display alerts on a component page': alerts-on-component-page.md
+  - 'Display dashboards on a component page': dashboards-on-component-page.md
+
+plugins:
+  - techdocs-core
