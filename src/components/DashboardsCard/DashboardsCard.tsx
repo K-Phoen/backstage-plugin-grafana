@@ -40,7 +40,7 @@ export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashbo
 
   const title = (
     <Tooltip title={`Note: only dashboard with the "${tagSelectorFromEntity(entity)}" tag are displayed.`}>
-      <span>Dashboards</span>
+      <span>Grafana dashboards</span>
     </Tooltip>
   );
 
