@@ -1,6 +1,3 @@
-import { configApiRef, createApiFactory, createComponentExtension, createPlugin, discoveryApiRef, identityApiRef } from '@backstage/core-plugin-api';
-import { GrafanaApiClient, grafanaApiRef } from './api';
-
 /*
  * Copyright 2021 Kévin Gomez <contact@kevingomez.fr>
  *
@@ -16,6 +13,9 @@ import { GrafanaApiClient, grafanaApiRef } from './api';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { configApiRef, createApiFactory, createComponentExtension, createPlugin, discoveryApiRef, identityApiRef } from '@backstage/core-plugin-api';
+import { GrafanaApiClient, grafanaApiRef } from './api';
 
 export const grafanaPlugin = createPlugin({
   id: 'grafana',

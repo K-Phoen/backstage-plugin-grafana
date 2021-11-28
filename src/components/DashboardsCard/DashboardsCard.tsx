@@ -26,7 +26,7 @@ import { Link, Tooltip } from '@material-ui/core'
 import { Dashboard } from '../../types';
 import { GRAFANA_ANNOTATION_TAG_SELECTOR, isGrafanaAvailable, tagSelectorFromEntity } from '../grafanaData';
 
-export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashboards: Dashboard[] }) => {
+export const DashboardsTable = ({ entity, dashboards, title }: { entity: Entity, dashboards: Dashboard[], title?: string }) => {
   const columns: TableColumn<Dashboard>[] = [
     {
       title: 'Title',
@@ -38,15 +38,15 @@ export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashbo
     },
   ];
 
-  const title = (
+  const titleElm = (
     <Tooltip title={`Note: only dashboard with the "${tagSelectorFromEntity(entity)}" tag are displayed.`}>
-      <span>Dashboards</span>
+      <span>{title || 'Dashboards'}</span>
     </Tooltip>
   );
 
   return (
     <Table
-      title={title}
+      title={titleElm}
       options={{ paging: false, search: false, sorting: false, draggable: false, padding: 'dense' }}
       data={dashboards}
       columns={columns}
@@ -54,7 +54,7 @@ export const DashboardsTable = ({ entity, dashboards }: { entity: Entity, dashbo
   );
 };
 
-const Dashboards = ({ entity }: { entity: Entity }) => {
+const Dashboards = ({ entity, title }: { entity: Entity, title?: string }) => {
   const grafanaApi = useApi(grafanaApiRef);
   const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(tagSelectorFromEntity(entity)));
 
@@ -65,18 +65,18 @@ const Dashboards = ({ entity }: { entity: Entity }) => {
   }
 
   return (
-    <DashboardsTable entity={entity} dashboards={value || []} />
+    <DashboardsTable entity={entity} dashboards={value || []} title={title} />
   );
 };
 
-export const DashboardsCard = () => {
+export const DashboardsCard = ({ title }: { title?: string }) => {
   const { entity } = useEntity();
 
   return !isGrafanaAvailable(entity) ? (
     <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
   ) : (
     <ErrorBoundary>
-      <Dashboards entity={entity} />
+      <Dashboards entity={entity} title={title} />
     </ErrorBoundary>
   );
 };
