@@ -35,6 +35,7 @@ export const grafanaPlugin = createPlugin({
 
 export const EntityGrafanaDashboardsCard = grafanaPlugin.provide(
   createComponentExtension({
+    name: 'EntityGrafanaDashboardsCard',
     component: {
       lazy: () =>
         import('./components/DashboardsCard').then(m => m.DashboardsCard
@@ -45,6 +46,7 @@ export const EntityGrafanaDashboardsCard = grafanaPlugin.provide(
 
 export const EntityGrafanaAlertsCard = grafanaPlugin.provide(
   createComponentExtension({
+    name: 'EntityGrafanaAlertsCard',
     component: {
       lazy: () =>
         import('./components/AlertsCard').then(m => m.AlertsCard
