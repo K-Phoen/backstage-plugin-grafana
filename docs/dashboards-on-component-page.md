@@ -40,4 +40,4 @@ annotations:
   grafana/tag-selector: "my-tag"
 ```
 
-The `EntityGrafanaDashboardsCard` component will then display alerts matching the given tag.
+The `EntityGrafanaDashboardsCard` component will then display dashboards matching the given tag.
