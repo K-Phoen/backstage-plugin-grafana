@@ -24,7 +24,6 @@ export interface GrafanaApi {
 
 export const grafanaApiRef = createApiRef<GrafanaApi>({
   id: 'plugin.grafana.service',
-  description: 'Used by the Grafana plugin to make requests',
 });
 
 export type Options = {
