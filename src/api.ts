@@ -102,14 +102,14 @@ export class GrafanaApiClient implements GrafanaApi {
   }
 
   private async addAuthHeaders(init: RequestInit): Promise<RequestInit> {
-    const authToken = await this.identityApi.getIdToken();
+    const { token } = await this.identityApi.getCredentials();
     const headers = init.headers || {};
 
     return {
       ...init,
       headers: {
         ...headers,
-        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       }
     };
   }
