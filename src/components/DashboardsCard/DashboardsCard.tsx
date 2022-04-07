@@ -15,7 +15,7 @@
  */
 
 import React from 'react';
-import { Progress, ErrorBoundary, TableColumn, Table, MissingAnnotationEmptyState } from '@backstage/core-components';
+import { Progress, TableColumn, Table, MissingAnnotationEmptyState } from '@backstage/core-components';
 import { Entity } from '@backstage/catalog-model';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi } from '@backstage/core-plugin-api';
@@ -75,8 +75,6 @@ export const DashboardsCard = ({ title }: { title?: string }) => {
   return !isGrafanaAvailable(entity) ? (
     <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
   ) : (
-    <ErrorBoundary>
-      <Dashboards entity={entity} title={title} />
-    </ErrorBoundary>
+    <Dashboards entity={entity} title={title} />
   );
 };
