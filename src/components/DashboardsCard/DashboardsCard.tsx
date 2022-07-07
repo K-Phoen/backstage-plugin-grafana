@@ -22,41 +22,80 @@ import { useApi } from '@backstage/core-plugin-api';
 import { grafanaApiRef } from '../../api';
 import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
-import { Link, Tooltip } from '@material-ui/core'
+import { Link, Tooltip } from '@material-ui/core';
 import { Dashboard } from '../../types';
 import { GRAFANA_ANNOTATION_TAG_SELECTOR, isGrafanaAvailable, tagSelectorFromEntity } from '../grafanaData';
 
-export const DashboardsTable = ({ entity, dashboards, title }: { entity: Entity, dashboards: Dashboard[], title?: string }) => {
+export const DashboardsTable = ({
+  entity,
+  dashboards,
+  opts,
+}: {
+  entity: Entity;
+  dashboards: Dashboard[];
+  opts?: DashboardCardOpts;
+}) => {
   const columns: TableColumn<Dashboard>[] = [
     {
+      title: 'id',
+      field: 'title',
+      hidden: true,
+      searchable: true,
+      render: (row: Dashboard): string => row.title,
+    },
+    {
       title: 'Title',
-      render: (row: Dashboard) => <Link href={row.url} target="_blank" rel="noopener">{row.title}</Link>,
+      render: (row: Dashboard) => (
+        <Link href={row.url} target="_blank" rel="noopener">
+          {row.title}
+        </Link>
+      ),
     },
     {
       title: 'Folder',
-      render: (row: Dashboard) => <Link href={row.folderUrl} target="_blank" rel="noopener">{row.folderTitle}</Link>,
+      render: (row: Dashboard) => (
+        <Link href={row.folderUrl} target="_blank" rel="noopener">
+          {row.folderTitle}
+        </Link>
+      ),
     },
   ];
 
   const titleElm = (
     <Tooltip title={`Note: only dashboard with the "${tagSelectorFromEntity(entity)}" tag are displayed.`}>
-      <span>{title || 'Dashboards'}</span>
+      <span>{opts?.title || 'Dashboards'}</span>
     </Tooltip>
   );
 
   return (
     <Table
       title={titleElm}
-      options={{ paging: false, search: false, sorting: false, draggable: false, padding: 'dense' }}
+      options={{
+        paging: opts?.paged ?? false,
+        pageSize: opts?.pageSize ?? 5,
+        search: opts?.searchable ?? false,
+        emptyRowsWhenPaging: false,
+        sorting: false,
+        draggable: false,
+        padding: 'dense',
+      }}
       data={dashboards}
       columns={columns}
     />
   );
 };
 
-const Dashboards = ({ entity, title }: { entity: Entity, title?: string }) => {
+const Dashboards = ({
+  entity,
+  opts,
+}: {
+  entity: Entity;
+  opts?: DashboardCardOpts;
+}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(tagSelectorFromEntity(entity)));
+  const { value, loading, error } = useAsync(
+    async () => await grafanaApi.dashboardsByTag(tagSelectorFromEntity(entity)),
+  );
 
   if (loading) {
     return <Progress />;
@@ -65,16 +104,23 @@ const Dashboards = ({ entity, title }: { entity: Entity, title?: string }) => {
   }
 
   return (
-    <DashboardsTable entity={entity} dashboards={value || []} title={title} />
+    <DashboardsTable entity={entity} dashboards={value || []} opts={opts} />
   );
 };
 
-export const DashboardsCard = ({ title }: { title?: string }) => {
+export type DashboardCardOpts = {
+  paged?: boolean;
+  searchable?: boolean;
+  pageSize?: number;
+  title?: string;
+};
+
+export const DashboardsCard = (opts?: DashboardCardOpts) => {
   const { entity } = useEntity();
 
   return !isGrafanaAvailable(entity) ? (
     <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
   ) : (
-    <Dashboards entity={entity} title={title} />
+    <Dashboards entity={entity} opts={opts} />
   );
 };

@@ -52,30 +52,67 @@ const AlertStatusBadge = ({ alert }: { alert: GrafanaAlert }) => {
   );
 };
 
-export const AlertsTable = ({ alerts }: { alerts: GrafanaAlert[] }) => {
+export const AlertsTable = ({
+  alerts,
+  opts,
+}: {
+  alerts: GrafanaAlert[];
+  opts?: AlertsCardOpts;
+}) => {
   const columns: TableColumn<GrafanaAlert>[] = [
     {
+      title: 'id',
+      field: 'name',
+      hidden: true,
+      searchable: true,
+      render: (row: GrafanaAlert): string => row.name,
+    },
+    {
       title: 'Name',
-      cellStyle: {width: '90%'},
-      render: (row: GrafanaAlert): React.ReactNode => <Link href={`${row.url}?panelId=${row.panelId}&fullscreen&refresh=5s`} target="_blank" rel="noopener">{row.name}</Link>,
+      cellStyle: { width: '90%' },
+      render: (row: GrafanaAlert): React.ReactNode => (
+        <Link
+          href={`${row.url}?panelId=${row.panelId}&fullscreen&refresh=5s`}
+          target="_blank"
+          rel="noopener"
+        >
+          {row.name}
+        </Link>
+      ),
     },
     {
       title: 'State',
-      render: (row: GrafanaAlert): React.ReactNode => <AlertStatusBadge alert={row} />,
+      render: (row: GrafanaAlert): React.ReactNode => (
+        <AlertStatusBadge alert={row} />
+      ),
     },
   ];
 
   return (
     <Table
       title="Alerts"
-      options={{ paging: false, search: false, sorting: false, draggable: false, padding: 'dense' }}
+      options={{
+        paging: opts?.paged ?? false,
+        pageSize: opts?.pageSize ?? 5,
+        search: opts?.searchable ?? false,
+        emptyRowsWhenPaging: false,
+        sorting: false,
+        draggable: false,
+        padding: 'dense',
+      }}
       data={alerts}
       columns={columns}
     />
   );
 };
 
-const Alerts = ({ entity }: { entity: Entity }) => {
+const Alerts = ({
+  entity,
+  opts,
+}: {
+  entity: Entity;
+  opts?: AlertsCardOpts;
+}) => {
   const grafanaApi = useApi(grafanaApiRef);
   const { value, loading, error } = useAsync(async () => await grafanaApi.alertsByDashboardTag(tagSelectorFromEntity(entity)));
 
@@ -85,17 +122,21 @@ const Alerts = ({ entity }: { entity: Entity }) => {
     return <Alert severity="error">{error.message}</Alert>;
   }
 
-  return (
-    <AlertsTable alerts={value || []} />
-  );
+  return <AlertsTable alerts={value || []} opts={opts} />;
 };
 
-export const AlertsCard = () => {
+export type AlertsCardOpts = {
+  paged?: boolean;
+  searchable?: boolean;
+  pageSize?: number;
+};
+
+export const AlertsCard = (opts?: AlertsCardOpts) => {
   const { entity } = useEntity();
 
   return !isGrafanaAvailable(entity) ? (
     <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
   ) : (
-    <Alerts entity={entity} />
+    <Alerts entity={entity} opts={opts} />
   );
 };
