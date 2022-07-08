@@ -41,3 +41,5 @@ annotations:
 ```
 
 The `EntityGrafanaDashboardsCard` component will then display dashboards matching the given tag.
+
+It's also possible to add multiple comma-separated tags, like `my-tag-1,my-tag-2`.

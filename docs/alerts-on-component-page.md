@@ -40,4 +40,6 @@ annotations:
   grafana/tag-selector: "my-tag"
 ```
 
-The `EntityGrafanaAlertsCard` component will then display alerts matching the given tag.
+The `EntityGrafanaAlertsCard` component will then display alerts matching the given tag. 
+
+It's also possible to add multiple comma-separated tags, like `my-tag-1,my-tag-2`.

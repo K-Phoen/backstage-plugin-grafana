@@ -15,6 +15,7 @@
  */
 
 export interface Dashboard {
+  id: number;
   title: string;
   url: string;
   folderTitle: string;
