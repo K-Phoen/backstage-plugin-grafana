@@ -24,7 +24,7 @@ import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
 import { Link, Tooltip } from '@material-ui/core'
 import { Dashboard } from '../../types';
-import { GRAFANA_ANNOTATION_TAG_SELECTOR, isGrafanaAvailable, tagSelectorFromEntity } from '../grafanaData';
+import { GRAFANA_ANNOTATION_TAG_SELECTOR, isDashboardSelectorAvailable, tagSelectorFromEntity } from '../grafanaData';
 
 export const DashboardsTable = ({ entity, dashboards, title }: { entity: Entity, dashboards: Dashboard[], title?: string }) => {
   const columns: TableColumn<Dashboard>[] = [
@@ -72,7 +72,7 @@ const Dashboards = ({ entity, title }: { entity: Entity, title?: string }) => {
 export const DashboardsCard = ({ title }: { title?: string }) => {
   const { entity } = useEntity();
 
-  return !isGrafanaAvailable(entity) ? (
+  return !isDashboardSelectorAvailable(entity) ? (
     <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
   ) : (
     <Dashboards entity={entity} title={title} />

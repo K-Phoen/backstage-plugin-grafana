@@ -15,7 +15,7 @@
  */
 
 import { configApiRef, createApiFactory, createComponentExtension, createPlugin, discoveryApiRef, identityApiRef } from '@backstage/core-plugin-api';
-import { GrafanaApiClient, grafanaApiRef } from './api';
+import { UnifiedAlertingGrafanaApiClient, grafanaApiRef, GrafanaApiClient } from './api';
 
 export const grafanaPlugin = createPlugin({
   id: 'grafana',
@@ -23,12 +23,25 @@ export const grafanaPlugin = createPlugin({
     createApiFactory({
       api: grafanaApiRef,
       deps: { discoveryApi: discoveryApiRef, identityApi: identityApiRef, configApi: configApiRef },
-      factory: ({ discoveryApi, identityApi, configApi }) => new GrafanaApiClient({
-        discoveryApi: discoveryApi,
-        identityApi: identityApi,
-        domain: configApi.getString('grafana.domain'),
-        proxyPath: configApi.getOptionalString('grafana.proxyPath'),
-      }),
+      factory: ({ discoveryApi, identityApi, configApi }) => {
+        const unifiedAlertingEnabled = configApi.getOptionalBoolean('grafana.unifiedAlerting') || false;
+
+        if (!unifiedAlertingEnabled) {
+          return new GrafanaApiClient({
+            discoveryApi: discoveryApi,
+            identityApi: identityApi,
+            domain: configApi.getString('grafana.domain'),
+            proxyPath: configApi.getOptionalString('grafana.proxyPath'),
+          });
+        }
+
+        return new UnifiedAlertingGrafanaApiClient({
+          discoveryApi: discoveryApi,
+          identityApi: identityApi,
+          domain: configApi.getString('grafana.domain'),
+          proxyPath: configApi.getOptionalString('grafana.proxyPath'),
+        });
+      },
     }),
   ],
 });
