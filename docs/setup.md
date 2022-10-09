@@ -14,7 +14,7 @@ to authenticate with Grafana without exposing your API key to users.
 # app-config.yaml
 proxy:
   '/grafana/api':
-    # May be an internal DNS
+    # May be a public or an internal DNS
     target: https://grafana.host/
     headers:
       Authorization: Bearer ${GRAFANA_TOKEN}
@@ -22,6 +22,11 @@ proxy:
 grafana:
   # Publicly accessible domain
   domain: https://monitoring.company.com
+
+  # Is unified alerting enabled in Grafana?
+  # See: https://grafana.com/blog/2021/06/14/the-new-unified-alerting-system-for-grafana-everything-you-need-to-know/
+  # Optional. Default: false
+  unifiedAlerting: false
 ```
 
 Expose the plugin to Backstage:

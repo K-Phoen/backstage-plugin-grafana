@@ -33,9 +33,24 @@ const overviewContent = (
 );
 ```
 
-Grafana alerts are correlated to Backstage entities using an annotation added in the entity's `catalog-info.yaml` file:
+Grafana alerts are correlated to Backstage entities using an annotation added in the entity's `catalog-info.yaml` file.
 
-```yml
+## With Grafana Unified Alerting enabled
+
+If Grafana's [Unified Alerting](https://grafana.com/blog/2021/06/14/the-new-unified-alerting-system-for-grafana-everything-you-need-to-know/) is enabled, alerts are selected by a label defined on them:
+
+```yaml
+annotations:
+  grafana/alert-label-selector: "service=awesome-service"
+```
+
+The `EntityGrafanaAlertsCard` component will then display alerts matching the given label and value.
+
+## With Grafana Legacy Alerting enabled
+
+If Grafana's [Unified Alerting](https://grafana.com/blog/2021/06/14/the-new-unified-alerting-system-for-grafana-everything-you-need-to-know/) is NOT enabled, alerts are selected by a tag present on the dashboards defining them:
+
+```yaml
 annotations:
   grafana/tag-selector: "my-tag"
 ```
