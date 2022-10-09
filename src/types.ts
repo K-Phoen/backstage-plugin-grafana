@@ -22,8 +22,6 @@ export interface Dashboard {
 }
 
 export interface Alert {
-  id: number;
-  panelId: number;
   name: string;
   state: string;
   url: string;

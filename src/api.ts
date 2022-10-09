@@ -19,7 +19,30 @@ import { Alert, Dashboard } from './types';
 
 export interface GrafanaApi {
   dashboardsByTag(tag: string): Promise<Dashboard[]>;
-  alertsByDashboardTag(tag: string): Promise<Alert[]>;
+  alertsForSelector(selector: string): Promise<Alert[]>;
+}
+
+interface AlertRuleGroupConfig {
+  name: string;
+  rules: AlertRule[];
+}
+
+interface GrafanaAlert {
+  id: number;
+  panelId: number;
+  name: string;
+  state: string;
+  url: string;
+}
+
+interface UnifiedGrafanaAlert {
+  uid: string;
+  title: string;
+}
+
+interface AlertRule {
+  labels: Record<string, string>;
+  grafana_alert: UnifiedGrafanaAlert;
 }
 
 export const grafanaApiRef = createApiRef<GrafanaApi>({
@@ -44,20 +67,18 @@ export type Options = {
 
 const DEFAULT_PROXY_PATH = '/grafana/api';
 
-export class GrafanaApiClient implements GrafanaApi {
+class Client {
   private readonly discoveryApi: DiscoveryApi;
   private readonly identityApi: IdentityApi;
   private readonly proxyPath: string;
-  private readonly domain: string;
 
   constructor(opts: Options) {
     this.discoveryApi = opts.discoveryApi;
     this.identityApi = opts.identityApi;
-    this.domain = opts.domain;
     this.proxyPath = opts.proxyPath ?? DEFAULT_PROXY_PATH;
   }
 
-  private async fetch<T = any>(input: string, init?: RequestInit): Promise<T> {
+  public async fetch<T = any>(input: string, init?: RequestInit): Promise<T> {
     const apiUrl = await this.apiUrl();
     const authedInit = await this.addAuthHeaders(init || {});
 
@@ -69,34 +90,7 @@ export class GrafanaApiClient implements GrafanaApi {
     return await resp.json();
   }
 
-  async dashboardsByTag(tag: string): Promise<Dashboard[]> {
-    const response = await this.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
-
-    return response.map(dashboard => (
-      {
-        title: dashboard.title,
-        url: this.domain + dashboard.url,
-        folderTitle: dashboard.folderTitle,
-        folderUrl: this.domain + dashboard.folderUrl,
-      }
-    ));
-  }
-
-  async alertsByDashboardTag(tag: string): Promise<Alert[]> {
-    const response = await this.fetch<Alert[]>(`/api/alerts?dashboardTag=${tag}`);
-
-    return response.map(alert => (
-      {
-        id: alert.id,
-        panelId: alert.panelId,
-        name: alert.name,
-        state: alert.state,
-        url: this.domain + alert.url,
-      }
-    ));
-  }
-
-  private async apiUrl() {
+  public async apiUrl() {
     const proxyUrl = await this.discoveryApi.getBaseUrl('proxy');
     return proxyUrl + this.proxyPath;
   }
@@ -112,5 +106,79 @@ export class GrafanaApiClient implements GrafanaApi {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       }
     };
+  }
+}
+
+export class GrafanaApiClient implements GrafanaApi {
+  private readonly domain: string;
+  private readonly client: Client;
+
+  constructor(opts: Options) {
+    this.domain = opts.domain;
+    this.client = new Client(opts);
+  }
+
+  async dashboardsByTag(tag: string): Promise<Dashboard[]> {
+    const response = await this.client.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
+
+    return response.map(dashboard => (
+      {
+        title: dashboard.title,
+        url: this.domain + dashboard.url,
+        folderTitle: dashboard.folderTitle,
+        folderUrl: this.domain + dashboard.folderUrl,
+      }
+    ));
+  }
+
+  async alertsForSelector(dashboardTag: string): Promise<Alert[]> {
+    const response = await this.client.fetch<GrafanaAlert[]>(`/api/alerts?dashboardTag=${dashboardTag}`);
+
+    return response.map(alert => (
+      {
+        name: alert.name,
+        state: alert.state,
+        url: `${this.domain}${alert.url}?panelId=${alert.panelId}&fullscreen&refresh=30s`,
+      }
+    ));
+  }
+}
+
+export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
+  private readonly domain: string;
+  private readonly client: Client;
+
+  constructor(opts: Options) {
+    this.domain = opts.domain;
+    this.client = new Client(opts);
+  }
+
+  async dashboardsByTag(tag: string): Promise<Dashboard[]> {
+    const response = await this.client.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
+
+    return response.map(dashboard => (
+      {
+        title: dashboard.title,
+        url: this.domain + dashboard.url,
+        folderTitle: dashboard.folderTitle,
+        folderUrl: this.domain + dashboard.folderUrl,
+      }
+    ));
+  }
+
+  async alertsForSelector(selector: string): Promise<Alert[]> {
+    const response = await this.client.fetch<Record<string, AlertRuleGroupConfig[]>>('/api/ruler/grafana/api/v1/rules');
+    const rules = Object.values(response).flat().map(ruleGroup => ruleGroup.rules).flat();
+    const [label, labelValue] = selector.split('=');
+
+    const matchingRules = rules.filter(rule => rule.labels[label] === labelValue);
+
+    return matchingRules.map(rule => {
+      return {
+        name: rule.grafana_alert.title,
+        url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
+        state: "n/a",
+      };
+    })
   }
 }

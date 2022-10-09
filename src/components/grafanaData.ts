@@ -17,7 +17,10 @@
 import { Entity } from '@backstage/catalog-model';
 
 export const GRAFANA_ANNOTATION_TAG_SELECTOR = 'grafana/tag-selector';
+export const GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR = 'grafana/alert-label-selector';
 
-export const isGrafanaAvailable = (entity: Entity) => Boolean(entity?.metadata.annotations?.[GRAFANA_ANNOTATION_TAG_SELECTOR]);
+export const isDashboardSelectorAvailable = (entity: Entity) => Boolean(entity?.metadata.annotations?.[GRAFANA_ANNOTATION_TAG_SELECTOR]);
+export const isAlertSelectorAvailable = (entity: Entity) => Boolean(entity?.metadata.annotations?.[GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR]);
 
 export const tagSelectorFromEntity = (entity: Entity) => entity?.metadata.annotations?.[GRAFANA_ANNOTATION_TAG_SELECTOR] ?? '';
+export const alertSelectorFromEntity = (entity: Entity) => entity?.metadata.annotations?.[GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR] ?? '';

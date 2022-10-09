@@ -28,5 +28,11 @@ export interface Config {
          * @visibility frontend
          */
         proxyPath?: string;
+
+        /**
+         * Is Grafana using unified alerting?
+         * @visibility frontend
+         */
+        unifiedAlerting?: boolean;
     }
 }

@@ -15,4 +15,9 @@
  */
 
 export { grafanaPlugin, EntityGrafanaDashboardsCard, EntityGrafanaAlertsCard } from './plugin';
-export { isGrafanaAvailable, GRAFANA_ANNOTATION_TAG_SELECTOR } from './components/grafanaData';
+export {
+  isDashboardSelectorAvailable,
+  alertSelectorFromEntity,
+  GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR,
+  GRAFANA_ANNOTATION_TAG_SELECTOR,
+} from './components/grafanaData';
