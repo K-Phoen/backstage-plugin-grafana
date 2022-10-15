@@ -55,14 +55,8 @@ const AlertStatusBadge = ({ alert }: { alert: GrafanaAlert }) => {
 export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: AlertsCardOpts}) => {
   const columns: TableColumn<GrafanaAlert>[] = [
     {
-      title: 'id',
-      field: 'name',
-      hidden: true,
-      searchable: true,
-      render: (row: GrafanaAlert): string => row.name,
-    },
-    {
       title: 'Name',
+      field: 'name',
       cellStyle: {width: '90%'},
       render: (row: GrafanaAlert): React.ReactNode => <Link href={row.url} target="_blank" rel="noopener">{row.name}</Link>,
     },
@@ -83,7 +77,7 @@ export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: Alert
         pageSize: opts.pageSize ?? 5,
         search: opts.searchable ?? false,
         emptyRowsWhenPaging: false,
-        sorting: false,
+        sorting: opts.sortable ?? false,
         draggable: false,
         padding: 'dense',
       }}
@@ -114,6 +108,7 @@ export type AlertsCardOpts = {
   paged?: boolean;
   searchable?: boolean;
   pageSize?: number;
+  sortable?: boolean;
   title?: string;
   showState?: boolean;
 };
@@ -131,5 +126,7 @@ export const AlertsCard = (opts?: AlertsCardOpts) => {
     return <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR} />;
   }
 
-  return <Alerts entity={entity} opts={opts || {}} />;
+  const finalOpts = {...opts, ...{showState: opts?.showState && !unifiedAlertingEnabled}};
+
+  return <Alerts entity={entity} opts={finalOpts} />;
 };
