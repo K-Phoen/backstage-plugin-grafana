@@ -35,7 +35,7 @@ describe('DashboardsTable', () => {
   }
 
   it('should render even with no dashboards', async () => {
-    const rendered = render(<DashboardsTable dashboards={[]} entity={entityMock} />);
+    const rendered = render(<DashboardsTable dashboards={[]} entity={entityMock} opts={{}} />);
 
     expect(await rendered.findByText('No records to display')).toBeInTheDocument();
   });
