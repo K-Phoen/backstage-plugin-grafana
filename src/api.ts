@@ -171,7 +171,7 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
     const rules = Object.values(response).flat().map(ruleGroup => ruleGroup.rules).flat();
     const [label, labelValue] = selector.split('=');
 
-    const matchingRules = rules.filter(rule => rule.labels[label] === labelValue);
+    const matchingRules = rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
 
     return matchingRules.map(rule => {
       return {
