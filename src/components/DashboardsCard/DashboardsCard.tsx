@@ -15,14 +15,14 @@
  */
 
 import React from 'react';
-import { Progress, TableColumn, Table, MissingAnnotationEmptyState } from '@backstage/core-components';
+import { Progress, TableColumn, Table, MissingAnnotationEmptyState, Link } from '@backstage/core-components';
 import { Entity } from '@backstage/catalog-model';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi } from '@backstage/core-plugin-api';
 import { grafanaApiRef } from '../../api';
 import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
-import { Link, Tooltip } from '@material-ui/core';
+import { Tooltip } from '@material-ui/core';
 import { Dashboard } from '../../types';
 import { GRAFANA_ANNOTATION_TAG_SELECTOR, isDashboardSelectorAvailable, tagSelectorFromEntity } from '../grafanaData';
 
@@ -31,12 +31,12 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
     {
       title: 'Title',
       field: 'title',
-      render: (row: Dashboard) => <Link href={row.url} target="_blank" rel="noopener">{row.title}</Link>,
+      render: (row: Dashboard) => <Link to={row.url} target="_blank" rel="noopener">{row.title}</Link>,
     },
     {
       title: 'Folder',
       field: 'folderTitle',
-      render: (row: Dashboard) => <Link href={row.folderUrl} target="_blank" rel="noopener">{row.folderTitle}</Link>,
+      render: (row: Dashboard) => <Link to={row.folderUrl} target="_blank" rel="noopener">{row.folderTitle}</Link>,
     },
   ];
 
