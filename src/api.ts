@@ -177,27 +177,31 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
   }
 
   async alertsForSelector(selector: string): Promise<Alert[]> {
-    const response = await this.client.fetch<Record<string, AlertRuleGroupConfig[]>>('/api/ruler/grafana/api/v1/rules');
-    const rules = Object.values(response).flat().map(ruleGroup => ruleGroup.rules).flat();
     const [label, labelValue] = selector.split('=');
-
-    const matchingRules = rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
-
-    const alertsResponse = await this.client.fetch<AlertsData>('/api/prometheus/grafana/api/v1/alerts');
-    const alertInstances = alertsResponse.data.alerts;
+    const matchingRules = await this.getMatchingRules(label, labelValue);
+    const alertInstances = await this.getMatchingAlertInstances(label, labelValue);
 
     return matchingRules.map((rule) => {
       const matchingAlertInstances = alertInstances.filter(
-        (a) =>
-          a.labels.alertname === rule.labels.alertname &&
-          a.labels[label] === labelValue
+        (alertInstance) => alertInstance.labels.alertname === rule.labels.alertname
       );
-      const state = matchingAlertInstances[0]?.state ?? 'n/a'; // TODO: what to do when there are multiple matching alertInstances
+      const state = matchingAlertInstances[0]?.state ?? "n/a"; // TODO: what to do when there are multiple matching alertInstances
       return {
         name: rule.grafana_alert.title,
         url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
-        state
+        state,
       };
     });
+  }
+
+  private async getMatchingAlertInstances(label: string, labelValue: string) : Promise<AlertInstance[]> {
+    const alertsResponse = await this.client.fetch<AlertsData>('/api/prometheus/grafana/api/v1/alerts');
+    return alertsResponse.data.alerts.filter(alertInstance => alertInstance.labels[label] === labelValue);
+  }
+
+  private async getMatchingRules(label: string, labelValue: string): Promise<AlertRule[]> {
+    const response = await this.client.fetch<Record<string, AlertRuleGroupConfig[]>>('/api/ruler/grafana/api/v1/rules');
+    const rules = Object.values(response).flat().map(ruleGroup => ruleGroup.rules).flat();
+    return rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
   }
 }
