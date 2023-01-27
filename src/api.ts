@@ -182,3 +182,21 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
     })
   }
 }
+
+// const alertsResponse = await this.client.fetch("/api/prometheus/grafana/api/v1/alerts");
+//     const alerts = alertsResponse.data.alerts;
+
+//     return matchingRules.map((rule) => {
+//       const matchingAlerts = alerts
+//       // .filter(a => 
+//       //     a.annotations?.__alertId__ === rule.annotations?.__alertId__)
+//       .filter(a => 
+//         a.labels.alertname === rule.labels.alertname && 
+//         a.labels[label] === labelValue);
+//       console.log('alert', rule.grafana_alert.title, matchingAlerts);
+
+//       return {
+//         name: rule.grafana_alert.title,
+//         url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
+//         state: matchingAlerts[0].state,// "n/a"
+//       };
