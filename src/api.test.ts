@@ -21,23 +21,43 @@ describe("UnifiedAlertingGrafanaApiClient.alertsForSelector", () => {
   );
   setupRequestMockHandlers(server);
 
-  it("should return Grafana alerts matching the label", async () => {
-    const client = new UnifiedAlertingGrafanaApiClient({
-      domain: "http://localhost",
-      discoveryApi: {
-        getBaseUrl: (_) => Promise.resolve("http://localhost/proxy"),
-      },
-      identityApi: {
-        getCredentials: () => Promise.resolve({ token: "token" }),
-      } as unknown as IdentityApi,
-    });
+  const client = new UnifiedAlertingGrafanaApiClient({
+    domain: "http://localhost",
+    discoveryApi: {
+      getBaseUrl: (_) => Promise.resolve("http://localhost/proxy"),
+    },
+    identityApi: {
+      getCredentials: () => Promise.resolve({ token: "token" }),
+    } as unknown as IdentityApi,
+  });
 
+  it("should return Grafana alerts matching the label", async () => {
     const actual = await client.alertsForSelector("bc=cow-service");
 
     expect(actual).toEqual([
       {
         name: "The Cows Got Out Again Alert",
         state: "Normal",
+        url: "http://localhost/alerting/grafana/A8KId9MVk/view",
+      },
+    ]);
+  });
+
+  it("should return an alert state of 'n/a' when no matching alert instance", async () => {
+    server.use(
+      rest.get(
+        "http://localhost/proxy/grafana/api/api/prometheus/grafana/api/v1/alerts",
+        (_, res, ctx) => {
+          return res(ctx.json({ data: { alerts: [] } }));
+        }
+      )
+    );
+
+    const actual = await client.alertsForSelector("bc=cow-service");
+    expect(actual).toEqual([
+      {
+        name: "The Cows Got Out Again Alert",
+        state: "n/a",
         url: "http://localhost/alerting/grafana/A8KId9MVk/view",
       },
     ]);

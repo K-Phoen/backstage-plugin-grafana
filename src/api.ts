@@ -186,17 +186,17 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
     const alertsResponse = await this.client.fetch<AlertsData>('/api/prometheus/grafana/api/v1/alerts');
     const alertInstances = alertsResponse.data.alerts;
 
-    // TODO: what if no labels
     return matchingRules.map((rule) => {
-      const matchingAlerts = alertInstances.filter(
+      const matchingAlertInstances = alertInstances.filter(
         (a) =>
           a.labels.alertname === rule.labels.alertname &&
           a.labels[label] === labelValue
       );
+      const state = matchingAlertInstances[0]?.state ?? 'n/a'; // TODO: what to do when there are multiple matching alertInstances
       return {
         name: rule.grafana_alert.title,
         url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
-        state: matchingAlerts[0].state, // TODO: what if 0, multiple
+        state
       };
     });
   }
