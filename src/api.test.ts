@@ -11,6 +11,12 @@ describe("UnifiedAlertingGrafanaApiClient.alertsForSelector", () => {
       (_, res, ctx) => {
         return res(ctx.json(grafanaRules));
       }
+    ),
+    rest.get(
+      "http://localhost/proxy/grafana/api/api/prometheus/grafana/api/v1/alerts",
+      (_, res, ctx) => {
+        return res(ctx.json(prometheusGrafanaAlerts));
+      }
     )
   );
   setupRequestMockHandlers(server);
@@ -31,7 +37,7 @@ describe("UnifiedAlertingGrafanaApiClient.alertsForSelector", () => {
     expect(actual).toEqual([
       {
         name: "The Cows Got Out Again Alert",
-        state: "n/a",
+        state: "Normal",
         url: "http://localhost/alerting/grafana/A8KId9MVk/view",
       },
     ]);
@@ -106,4 +112,47 @@ const grafanaRules = {
       ],
     },
   ],
+};
+
+const prometheusGrafanaAlerts = {
+  status: "success",
+  data: {
+    alerts: [
+      {
+        labels: {
+          alertname: "The Cows Got Out Again Alert",
+          bc: "cow-service",
+          datasource_uid: "hXvTw1-Mk",
+          grafana_folder: "Team Alerting",
+          ref_id: "A",
+          rule_uid: "faKSOrGVz",
+        },
+        annotations: {
+          __alertId__: "221",
+          __dashboardUid__: "Ukd1WCW4k",
+          __panelId__: "7",
+        },
+        state: "Normal",
+        activeAt: "2023-01-24T19:00:00Z",
+        value: "",
+      },
+      {
+        labels: {
+          alertname: "Software Catalog - GitHub Provider Errors",
+          bc: "backstage",
+          datasource_uid: "Dxk0ygKMz",
+          grafana_folder: "General Alerting",
+          ref_id: "github-provider-errors",
+        },
+        annotations: {
+          __alertId__: "211",
+          __dashboardUid__: "YlQCvsNnz",
+          __panelId__: "42",
+        },
+        state: "Alerting",
+        activeAt: "2023-01-24T00:09:00Z",
+        value: "",
+      },
+    ],
+  },
 };

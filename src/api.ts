@@ -45,6 +45,16 @@ interface AlertRule {
   grafana_alert: UnifiedGrafanaAlert;
 }
 
+interface AlertInstance {
+  labels: Record<string,string>;
+  state: string;
+}
+
+interface AlertsData {
+  data: { alerts: AlertInstance[]}
+}
+
+
 export const grafanaApiRef = createApiRef<GrafanaApi>({
   id: 'plugin.grafana.service',
 });
@@ -173,30 +183,21 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
 
     const matchingRules = rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
 
-    return matchingRules.map(rule => {
+    const alertsResponse = await this.client.fetch<AlertsData>('/api/prometheus/grafana/api/v1/alerts');
+    const alertInstances = alertsResponse.data.alerts;
+
+    // TODO: what if no labels
+    return matchingRules.map((rule) => {
+      const matchingAlerts = alertInstances.filter(
+        (a) =>
+          a.labels.alertname === rule.labels.alertname &&
+          a.labels[label] === labelValue
+      );
       return {
         name: rule.grafana_alert.title,
         url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
-        state: "n/a",
+        state: matchingAlerts[0].state, // TODO: what if 0, multiple
       };
-    })
+    });
   }
 }
-
-// const alertsResponse = await this.client.fetch("/api/prometheus/grafana/api/v1/alerts");
-//     const alerts = alertsResponse.data.alerts;
-
-//     return matchingRules.map((rule) => {
-//       const matchingAlerts = alerts
-//       // .filter(a => 
-//       //     a.annotations?.__alertId__ === rule.annotations?.__alertId__)
-//       .filter(a => 
-//         a.labels.alertname === rule.labels.alertname && 
-//         a.labels[label] === labelValue);
-//       console.log('alert', rule.grafana_alert.title, matchingAlerts);
-
-//       return {
-//         name: rule.grafana_alert.title,
-//         url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
-//         state: matchingAlerts[0].state,// "n/a"
-//       };
