@@ -51,7 +51,32 @@ const AlertStatusBadge = ({ alert }: { alert: GrafanaAlert }) => {
   );
 };
 
-export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: AlertsCardOpts}) => {
+const UnifiedAlertStatusBadge = ({alert}: {alert: GrafanaAlert}) => {
+  let statusElmt: React.ReactElement;
+  const state = alert.state.split(' ')[0]
+  switch (state) {
+    case "Normal":
+      statusElmt = <StatusOK >{alert.state}</StatusOK>;
+      break;
+    case "Pending":
+      statusElmt = <StatusPending>{alert.state}</StatusPending>;
+      break;
+    case "Alerting":
+      statusElmt = <StatusError>{alert.state}</StatusError>;
+      break;
+    case "NoData":
+    case "Error":
+      statusElmt = <StatusWarning>{alert.state}</StatusWarning>;
+    break;
+    default:
+      statusElmt = <StatusAborted>{alert.state}</StatusAborted>;
+  }
+  return (
+    <div>{statusElmt}</div>
+  );
+}
+
+export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: AlertsOpts}) => {
   const columns: TableColumn<GrafanaAlert>[] = [
     {
       title: 'Name',
@@ -64,7 +89,7 @@ export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: Alert
   if (opts.showState) {
     columns.push({
       title: 'State',
-      render: (row: GrafanaAlert): React.ReactNode => <AlertStatusBadge alert={row} />,
+      render: (row: GrafanaAlert): React.ReactNode => opts.unifiedAlerting ? <UnifiedAlertStatusBadge alert={row}/> : <AlertStatusBadge alert={row} />,
     });
   }
 
@@ -86,11 +111,9 @@ export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: Alert
   );
 };
 
-const Alerts = ({entity, opts}: {entity: Entity, opts: AlertsCardOpts}) => {
+const Alerts = ({entity, opts}: {entity: Entity, opts: AlertsOpts}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const configApi = useApi(configApiRef);
-  const unifiedAlertingEnabled = configApi.getOptionalBoolean('grafana.unifiedAlerting') || false;
-  const alertSelector = unifiedAlertingEnabled ? alertSelectorFromEntity(entity) : tagSelectorFromEntity(entity);
+  const alertSelector = opts.unifiedAlerting ? alertSelectorFromEntity(entity) : tagSelectorFromEntity(entity);
 
   const { value, loading, error } = useAsync(async () => await grafanaApi.alertsForSelector(alertSelector));
 
@@ -112,6 +135,10 @@ export type AlertsCardOpts = {
   showState?: boolean;
 };
 
+interface AlertsOpts extends AlertsCardOpts {
+  unifiedAlerting: boolean
+}
+
 export const AlertsCard = (opts?: AlertsCardOpts) => {
   const { entity } = useEntity();
   const configApi = useApi(configApiRef);
@@ -125,7 +152,5 @@ export const AlertsCard = (opts?: AlertsCardOpts) => {
     return <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR} />;
   }
 
-  const finalOpts = {...opts, ...{showState: opts?.showState && !unifiedAlertingEnabled}};
-
-  return <Alerts entity={entity} opts={finalOpts} />;
+  return <Alerts entity={entity} opts={{...opts, unifiedAlerting: unifiedAlertingEnabled}} />;
 };

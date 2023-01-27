@@ -20,7 +20,7 @@ import { AlertsTable } from './AlertsCard';
 
 describe('AlertsTable', () => {
   it('should render even with no alerts', async () => {
-    const rendered = render(<AlertsTable opts={{title: "alerts", showState: true}} alerts={[]} />);
+    const rendered = render(<AlertsTable opts={{title: "alerts", showState: true, unifiedAlerting: false}} alerts={[]} />);
 
     expect(await rendered.findByText('No records to display')).toBeInTheDocument();
   });
