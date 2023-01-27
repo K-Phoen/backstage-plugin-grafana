@@ -5,21 +5,6 @@ import { setupServer } from "msw/node";
 import { rest } from "msw";
 
 describe("UnifiedAlertingGrafanaApiClient.alertsForSelector", () => {
-  const server = setupServer(
-    rest.get(
-      "http://localhost/proxy/grafana/api/api/ruler/grafana/api/v1/rules",
-      (_, res, ctx) => {
-        return res(ctx.json(grafanaRules));
-      }
-    ),
-    rest.get(
-      "http://localhost/proxy/grafana/api/api/prometheus/grafana/api/v1/alerts",
-      (_, res, ctx) => {
-        return res(ctx.json(prometheusGrafanaAlerts));
-      }
-    )
-  );
-  setupRequestMockHandlers(server);
 
   const client = new UnifiedAlertingGrafanaApiClient({
     domain: "http://localhost",
@@ -52,100 +37,116 @@ describe("UnifiedAlertingGrafanaApiClient.alertsForSelector", () => {
       },
     ]);
   });
-});
 
-const grafanaRules = {
-  "General Alerting": [
-    {
-      name: "Software Catalog - GitHub Provider Errors",
-      interval: "1m",
-      rules: [
-        {
-          expr: "",
-          for: "1m",
-          labels: {
-            alertname: "Software Catalog - GitHub Provider Errors",
-            bc: "backstage",
+  const grafanaRules = {
+    "General Alerting": [
+      {
+        name: "Software Catalog - GitHub Provider Errors",
+        interval: "1m",
+        rules: [
+          {
+            expr: "",
+            for: "1m",
+            labels: {
+              alertname: "Software Catalog - GitHub Provider Errors",
+              bc: "backstage",
+            },
+            annotations: {},
+            grafana_alert: {
+              id: 168,
+              orgId: 1,
+              title: "Software Catalog - GitHub Provider Errors",
+              condition: "A",
+              data: [],
+              updated: "2023-01-24T00:06:34Z",
+              intervalSeconds: 60,
+              version: 6,
+              uid: "I7VlW6GVz",
+              namespace_uid: "RfKIOrMVk",
+              namespace_id: 434,
+              rule_group: "Software Catalog - GitHub Provider Errors",
+              no_data_state: "OK",
+              exec_err_state: "Alerting",
+            },
           },
-          annotations: {},
-          grafana_alert: {
-            id: 168,
-            orgId: 1,
-            title: "Software Catalog - GitHub Provider Errors",
-            condition: "A",
-            data: [],
-            updated: "2023-01-24T00:06:34Z",
-            intervalSeconds: 60,
-            version: 6,
-            uid: "I7VlW6GVz",
-            namespace_uid: "RfKIOrMVk",
-            namespace_id: 434,
-            rule_group: "Software Catalog - GitHub Provider Errors",
-            no_data_state: "OK",
-            exec_err_state: "Alerting",
+        ],
+      },
+    ],
+    "Team Alerting": [
+      {
+        name: "The Cows Got Out Again Alert",
+        interval: "1m",
+        rules: [
+          {
+            expr: "",
+            for: "5m",
+            labels: {
+              alertname: "The Cows Got Out Again Alert",
+              bc: "cow-service",
+              rule_uid: "A8KId9MVk",
+            },
+            annotations: {},
+            grafana_alert: {
+              id: 28,
+              orgId: 1,
+              title: "The Cows Got Out Again Alert",
+              condition: "B",
+              data: [],
+              updated: "2023-01-24T18:59:04Z",
+              intervalSeconds: 60,
+              version: 3,
+              uid: "A8KId9MVk",
+              namespace_uid: "qHBliCZ4z",
+              namespace_id: 426,
+              rule_group: "The Cows Got Out Again Alert",
+              no_data_state: "OK",
+              exec_err_state: "Alerting",
+            },
           },
-        },
-      ],
-    },
-  ],
-  "Team Alerting": [
-    {
-      name: "The Cows Got Out Again Alert",
-      interval: "1m",
-      rules: [
+        ],
+      },
+    ],
+  };
+  
+  const prometheusGrafanaAlerts = {
+    status: "success",
+    data: {
+      alerts: [
         {
-          expr: "",
-          for: "5m",
           labels: {
             alertname: "The Cows Got Out Again Alert",
             bc: "cow-service",
-            rule_uid: "A8KId9MVk",
+            datasource_uid: "hXvTw1-Mk",
+            grafana_folder: "Team Alerting",
+            ref_id: "A",
+            rule_uid: "faKSOrGVz",
           },
-          annotations: {},
-          grafana_alert: {
-            id: 28,
-            orgId: 1,
-            title: "The Cows Got Out Again Alert",
-            condition: "B",
-            data: [],
-            updated: "2023-01-24T18:59:04Z",
-            intervalSeconds: 60,
-            version: 3,
-            uid: "A8KId9MVk",
-            namespace_uid: "qHBliCZ4z",
-            namespace_id: 426,
-            rule_group: "The Cows Got Out Again Alert",
-            no_data_state: "OK",
-            exec_err_state: "Alerting",
+          annotations: {
+            __alertId__: "221",
+            __dashboardUid__: "Ukd1WCW4k",
+            __panelId__: "7",
           },
+          state: "Normal",
+          activeAt: "2023-01-24T19:00:00Z",
+          value: "",
         },
       ],
     },
-  ],
-};
+  };
+  const server = setupServer(
+    rest.get(
+      "http://localhost/proxy/grafana/api/api/ruler/grafana/api/v1/rules",
+      (_, res, ctx) => {
+        return res(ctx.json(grafanaRules));
+      }
+    ),
+    rest.get(
+      "http://localhost/proxy/grafana/api/api/prometheus/grafana/api/v1/alerts",
+      (_, res, ctx) => {
+        return res(ctx.json(prometheusGrafanaAlerts));
+      }
+    )
+  );
+  setupRequestMockHandlers(server);
 
-const prometheusGrafanaAlerts = {
-  status: "success",
-  data: {
-    alerts: [
-      {
-        labels: {
-          alertname: "The Cows Got Out Again Alert",
-          bc: "cow-service",
-          datasource_uid: "hXvTw1-Mk",
-          grafana_folder: "Team Alerting",
-          ref_id: "A",
-          rule_uid: "faKSOrGVz",
-        },
-        annotations: {
-          __alertId__: "221",
-          __dashboardUid__: "Ukd1WCW4k",
-          __panelId__: "7",
-        },
-        state: "Normal",
-        activeAt: "2023-01-24T19:00:00Z",
-        value: "",
-      },
-    ],
-  },
-};
+});
