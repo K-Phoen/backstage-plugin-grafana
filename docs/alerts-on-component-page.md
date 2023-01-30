@@ -46,6 +46,8 @@ annotations:
 
 The `EntityGrafanaAlertsCard` component will then display alerts matching the given label and value.
 
+It's also possible to add multiple comma-separated alert labels, like `service=awesome-service-1,service=awesome-service-2`, which will display alerts which have at least one of the given labels and values.
+
 ## With Grafana Legacy Alerting enabled
 
 If Grafana's [Unified Alerting](https://grafana.com/blog/2021/06/14/the-new-unified-alerting-system-for-grafana-everything-you-need-to-know/) is NOT enabled, alerts are selected by a tag present on the dashboards defining them:
@@ -56,3 +58,5 @@ annotations:
 ```
 
 The `EntityGrafanaAlertsCard` component will then display alerts matching the given tag.
+
+It's also possible to add multiple comma-separated tags, like `my-tag-1,my-tag-2`, which will display dashboards which have at least one of the tags.
