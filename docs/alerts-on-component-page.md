@@ -70,7 +70,7 @@ annotations:
 
 That will match all dashboards that either:
 - Have both *tagA* and *tagB*
-- Have both *tagA* or *tagC*
+- Have both *tagA* and *tagC*
 - Have *tagD*
 - Have *tagE*
 
