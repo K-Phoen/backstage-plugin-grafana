@@ -109,17 +109,20 @@ class Client {
   }
 }
 
-async function buildUrisGrafana(baseUri: string, parameter: string, tags: string): Promise<string[]> {
+async function buildUrisGrafana(baseUri: string, baseParams: string[], tagParam: string, tags: string): Promise<string[]> {
     var uris: string[] = [];
     const tagsOr: string[] = tags.split(/(?:\s+or|\s*\||\s*,)\s+/)
     await Promise.all(tagsOr.map(async tagOr => {
-        var uri: string[] = [];
-        uri.push(baseUri);
+        var params: string[] = [...baseParams];
         const tagsAnd: string[] = tagOr.split(/(?:\s+and|\s*\&)\s+/)
         await Promise.all(tagsAnd.map(async tagAnd => {
-            uri.push(`&${parameter}=${tagAnd}`);
+            params.push(`${tagParam}=${tagAnd}`);
         }))
-        uris.push(uri.join(""));
+        let uri = baseUri;
+        if(uri.length > 0) {
+          uri += "?" + params.join("&");
+        }
+        return uris.push(uri);
     }))
     return uris;
 }
@@ -138,7 +141,7 @@ export class GrafanaApiClient implements GrafanaApi {
 
     const dashboards: Dashboard[] = [];
 
-    const urisGrafana: string[] = await buildUrisGrafana('/api/search?type=dash-db', 'tag', tags);
+    const urisGrafana: string[] = await buildUrisGrafana('/api/search', ['type=dash-db'], 'tag', tags);
     await Promise.all(urisGrafana.map(async uriGrafana => {
       const response = await this.client.fetch<Dashboard[]>(uriGrafana);
       dashboards.push(...response.map(dashboard => ({
@@ -160,7 +163,7 @@ export class GrafanaApiClient implements GrafanaApi {
 
     const alerts: Alert[] = [];
 
-    const urisGrafana: string[] = await buildUrisGrafana('/api/alerts', 'dashboardTag', dashboardTags);
+    const urisGrafana: string[] = await buildUrisGrafana('/api/alerts', [], 'dashboardTag', dashboardTags);
     await Promise.all(urisGrafana.map(async uriGrafana => {
       const response = await this.client.fetch<GrafanaAlert[]>(uriGrafana);
       alerts.push(...response.map(alert => ({
@@ -192,7 +195,7 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
 
     const dashboards: Dashboard[] = [];
 
-    const urisGrafana: string[] = await buildUrisGrafana('/api/search?type=dash-db', 'tag', tags);
+    const urisGrafana: string[] = await buildUrisGrafana('/api/search', ['type=dash-db'], 'tag', tags);
     await Promise.all(urisGrafana.map(async uriGrafana => {
       const response = await this.client.fetch<Dashboard[]>(uriGrafana);
       dashboards.push(...response.map(dashboard => ({
