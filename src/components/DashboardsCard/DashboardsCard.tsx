@@ -16,7 +16,6 @@
 
 import React from 'react';
 import { Progress, TableColumn, Table, MissingAnnotationEmptyState, Link } from '@backstage/core-components';
-import { Entity } from '@backstage/catalog-model';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi } from '@backstage/core-plugin-api';
 import { grafanaApiRef } from '../../api';
@@ -26,7 +25,7 @@ import { Tooltip } from '@material-ui/core';
 import { Dashboard } from '../../types';
 import { GRAFANA_ANNOTATION_TAG_SELECTOR, isDashboardSelectorAvailable, tagSelectorFromEntity } from '../grafanaData';
 
-export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, dashboards: Dashboard[], opts: DashboardCardOpts}) => {
+export const DashboardsTable = ({tags, dashboards, opts}: {tags: string, dashboards: Dashboard[], opts: DashboardCardOpts}) => {
   const columns: TableColumn<Dashboard>[] = [
     {
       title: 'Title',
@@ -41,7 +40,7 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
   ];
 
   const titleElm = (
-    <Tooltip title={`Note: only dashboard with the "${tagSelectorFromEntity(entity)}" tag are displayed.`}>
+    <Tooltip title={`Note: only dashboard with the "${tags}" tags are displayed.`}>
       <span>{opts.title || 'Dashboards'}</span>
     </Tooltip>
   );
@@ -64,9 +63,9 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
   );
 };
 
-const Dashboards = ({entity, opts}: {entity: Entity, opts: DashboardCardOpts}) => {
+const Dashboards = ({tags, opts}: {tags: string, opts: DashboardCardOpts}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(tagSelectorFromEntity(entity)));
+  const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(tags));
 
   if (loading) {
     return <Progress />;
@@ -75,7 +74,7 @@ const Dashboards = ({entity, opts}: {entity: Entity, opts: DashboardCardOpts}) =
   }
 
   return (
-    <DashboardsTable entity={entity} dashboards={value || []} opts={opts} />
+    <DashboardsTable tags={tags} dashboards={value || []} opts={opts} />
   );
 };
 
@@ -87,12 +86,13 @@ export type DashboardCardOpts = {
   title?: string;
 };
 
-export const DashboardsCard = (opts?: DashboardCardOpts) => {
-  const { entity } = useEntity();
-
-  return !isDashboardSelectorAvailable(entity) ? (
-    <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
-  ) : (
-    <Dashboards entity={entity} opts={opts || {}} />
-  );
+export const DashboardsCard = ({tags, opts}: {tags?: string, opts?: DashboardCardOpts}) => {
+  if(!tags){
+    const { entity } = useEntity();
+    if(!isDashboardSelectorAvailable(entity)){
+      return <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />;
+    }
+    tags = tagSelectorFromEntity(entity);
+  }
+  return <Dashboards tags={tags} opts={opts || {}} />;
 };
