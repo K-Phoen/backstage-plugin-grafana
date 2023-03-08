@@ -16,6 +16,7 @@
 
 import { createApiRef, DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
 import { Alert, Dashboard } from './types';
+import { buildUrisGrafana } from './uriBuilder';
 
 export interface GrafanaApi {
   dashboardsByTag(tags: string): Promise<Dashboard[]>;
@@ -107,24 +108,6 @@ class Client {
       }
     };
   }
-}
-
-async function buildUrisGrafana(baseUri: string, baseParams: string[], tagParam: string, tags: string): Promise<string[]> {
-    var uris: string[] = [];
-    const tagsOr: string[] = tags.split(/(?:\s+or|\s*\||\s*,)\s+/)
-    await Promise.all(tagsOr.map(async tagOr => {
-        var params: string[] = [...baseParams];
-        const tagsAnd: string[] = tagOr.split(/(?:\s+and|\s*\&)\s+/)
-        await Promise.all(tagsAnd.map(async tagAnd => {
-            params.push(`${tagParam}=${tagAnd}`);
-        }))
-        let uri = baseUri;
-        if(params.length > 0) {
-          uri += "?" + params.join("&");
-        }
-        return uris.push(uri);
-    }))
-    return uris;
 }
 
 export class GrafanaApiClient implements GrafanaApi {
