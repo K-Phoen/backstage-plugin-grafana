@@ -18,8 +18,8 @@ import { createApiRef, DiscoveryApi, IdentityApi } from '@backstage/core-plugin-
 import { Alert, Dashboard } from './types';
 
 export interface GrafanaApi {
-  dashboardsByTag(tag: string): Promise<Dashboard[]>;
-  alertsForSelector(selector: string): Promise<Alert[]>;
+  dashboardsByTag(tags: string): Promise<Dashboard[]>;
+  alertsForSelector(selectors: string): Promise<Alert[]>;
 }
 
 interface AlertRuleGroupConfig {
@@ -109,7 +109,26 @@ class Client {
   }
 }
 
+async function buildUrisGrafana(baseUri: string, baseParams: string[], tagParam: string, tags: string): Promise<string[]> {
+    var uris: string[] = [];
+    const tagsOr: string[] = tags.split(/(?:\s+or|\s*\||\s*,)\s+/)
+    await Promise.all(tagsOr.map(async tagOr => {
+        var params: string[] = [...baseParams];
+        const tagsAnd: string[] = tagOr.split(/(?:\s+and|\s*\&)\s+/)
+        await Promise.all(tagsAnd.map(async tagAnd => {
+            params.push(`${tagParam}=${tagAnd}`);
+        }))
+        let uri = baseUri;
+        if(params.length > 0) {
+          uri += "?" + params.join("&");
+        }
+        return uris.push(uri);
+    }))
+    return uris;
+}
+
 export class GrafanaApiClient implements GrafanaApi {
+
   private readonly domain: string;
   private readonly client: Client;
 
@@ -118,33 +137,52 @@ export class GrafanaApiClient implements GrafanaApi {
     this.client = new Client(opts);
   }
 
-  async dashboardsByTag(tag: string): Promise<Dashboard[]> {
-    const response = await this.client.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
+  async dashboardsByTag(tags: string): Promise<Dashboard[]> {
 
-    return response.map(dashboard => (
-      {
+    const dashboards: Dashboard[] = [];
+
+    const urisGrafana: string[] = await buildUrisGrafana('/api/search', ['type=dash-db'], 'tag', tags);
+    await Promise.all(urisGrafana.map(async uriGrafana => {
+      const response = await this.client.fetch<Dashboard[]>(uriGrafana);
+      dashboards.push(...response.map(dashboard => ({
         title: dashboard.title,
         url: this.domain + dashboard.url,
         folderTitle: dashboard.folderTitle,
         folderUrl: this.domain + dashboard.folderUrl,
-      }
-    ));
+      })));
+    }));
+
+    const dashboardUrls = dashboards.map(d => d.url);
+    return dashboards.filter(
+      // Checks if the dashboardUrl is present more than once, so the `index + 1` is required to avoid finding itself
+      ({ url }, index) => !dashboardUrls.includes(url, index + 1),
+    );
   }
 
-  async alertsForSelector(dashboardTag: string): Promise<Alert[]> {
-    const response = await this.client.fetch<GrafanaAlert[]>(`/api/alerts?dashboardTag=${dashboardTag}`);
+  async alertsForSelector(dashboardTags: string): Promise<Alert[]> {
 
-    return response.map(alert => (
-      {
+    const alerts: Alert[] = [];
+
+    const urisGrafana: string[] = await buildUrisGrafana('/api/alerts', [], 'dashboardTag', dashboardTags);
+    await Promise.all(urisGrafana.map(async uriGrafana => {
+      const response = await this.client.fetch<GrafanaAlert[]>(uriGrafana);
+      alerts.push(...response.map(alert => ({
         name: alert.name,
         state: alert.state,
         url: `${this.domain}${alert.url}?panelId=${alert.panelId}&fullscreen&refresh=30s`,
-      }
-    ));
+      })));
+    }));
+
+    const alertUrls = alerts.map(a => a.url);
+    return alerts.filter(
+      // Checks if the alertUrl is present more than once, so the `index + 1` is required to avoid finding itself
+      ({ url }, index) => !alertUrls.includes(url, index + 1),
+    );
   }
 }
 
 export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
+
   private readonly domain: string;
   private readonly client: Client;
 
@@ -153,32 +191,51 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
     this.client = new Client(opts);
   }
 
-  async dashboardsByTag(tag: string): Promise<Dashboard[]> {
-    const response = await this.client.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
+  async dashboardsByTag(tags: string): Promise<Dashboard[]> {
 
-    return response.map(dashboard => (
-      {
+    const dashboards: Dashboard[] = [];
+
+    const urisGrafana: string[] = await buildUrisGrafana('/api/search', ['type=dash-db'], 'tag', tags);
+    await Promise.all(urisGrafana.map(async uriGrafana => {
+      const response = await this.client.fetch<Dashboard[]>(uriGrafana);
+      dashboards.push(...response.map(dashboard => ({
         title: dashboard.title,
         url: this.domain + dashboard.url,
         folderTitle: dashboard.folderTitle,
         folderUrl: this.domain + dashboard.folderUrl,
-      }
-    ));
+      })));
+    }));
+
+    const dashboardUrls = dashboards.map(d => d.url);
+    return dashboards.filter(
+      // Checks if the dashboardUrl is present more than once, so the `index + 1` is required to avoid finding itself
+      ({ url }, index) => !dashboardUrls.includes(url, index + 1),
+    );
   }
 
-  async alertsForSelector(selector: string): Promise<Alert[]> {
-    const response = await this.client.fetch<Record<string, AlertRuleGroupConfig[]>>('/api/ruler/grafana/api/v1/rules');
-    const rules = Object.values(response).flat().map(ruleGroup => ruleGroup.rules).flat();
-    const [label, labelValue] = selector.split('=');
+  async alertsForSelector(selectors: string): Promise<Alert[]> {
 
-    const matchingRules = rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
+    const alerts: Alert[] = [];
 
-    return matchingRules.map(rule => {
-      return {
+    const selectorList: string[] = selectors.split(/(?:\s+or|\s*\||\s*,)\s+/);
+    await Promise.all(selectorList.map(async selector => {
+
+      const response = await this.client.fetch<Record<string, AlertRuleGroupConfig[]>>('/api/ruler/grafana/api/v1/rules');
+      const rules = Object.values(response).flat().map(ruleGroup => ruleGroup.rules).flat();
+      const [label, labelValue] = selector.split('=');
+
+      const matchingRules = rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
+      alerts.push(...matchingRules.map(rule => ({
         name: rule.grafana_alert.title,
         url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
         state: "n/a",
-      };
-    })
+      })));
+    }));
+
+    const alertUrls = alerts.map(a => a.url);
+    return alerts.filter(
+      // Checks if the alertUrl is present more than once, so the `index + 1` is required to avoid finding itself
+      ({ url }, index) => !alertUrls.includes(url, index + 1),
+    );
   }
 }

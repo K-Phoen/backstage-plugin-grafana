@@ -55,4 +55,23 @@ annotations:
   grafana/tag-selector: "my-tag"
 ```
 
+It also allows the following boolean operators:
+- Logical **AND**: *&* *and*
+- Logical **OR**: *,* *|* *or*
+
+> - Logical **AND** have <ins>higher precedence</ins> than **OR**. 
+> - Both operators *and* *or* require <ins>leading and trailing spaces</ins>, while the rest do not. 
+
+Being able to create expressions like this one:
+```yaml
+annotations:
+  grafana/tag-selector: "tagA & tagB or tagA and tagC | tagD, tagE"
+```
+
+That will match all dashboards that either:
+- Have both *tagA* and *tagB*
+- Have both *tagA* and *tagC*
+- Have *tagD*
+- Have *tagE*
+
 The `EntityGrafanaAlertsCard` component will then display alerts matching the given tag.
