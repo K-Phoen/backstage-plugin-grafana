@@ -51,8 +51,7 @@ export const EntityGrafanaDashboardsCard = grafanaPlugin.provide(
     name: 'EntityGrafanaDashboardsCard',
     component: {
       lazy: () =>
-        import('./components/DashboardsCard').then(m => m.DashboardsCard
-      ),
+        import('./components/DashboardsCard').then(m => m.DashboardsCard),
     },
   })
 );
@@ -62,8 +61,17 @@ export const EntityGrafanaAlertsCard = grafanaPlugin.provide(
     name: 'EntityGrafanaAlertsCard',
     component: {
       lazy: () =>
-        import('./components/AlertsCard').then(m => m.AlertsCard
-      ),
+        import('./components/AlertsCard').then(m => m.AlertsCard),
+    },
+  })
+);
+
+export const EntityOverviewDashboardViewer = grafanaPlugin.provide(
+  createComponentExtension({
+    name: 'EntityOverviewDashboardViewer',
+    component: {
+      lazy: () =>
+        import('./components/DashboardViewer').then(m => m.EntityDashboardViewer),
     },
   })
 );
