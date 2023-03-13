@@ -4,6 +4,8 @@ The Grafana plugin is a frontend plugin that lists Grafana alerts and dashboards
 
 * The `EntityGrafanaDashboardsCard` component which can display dashboards for a specific entity
 * The `EntityGrafanaAlertsCard` component which can display recent alerts for a specific entity
+* The `EntityOverviewDashboardViewer` component which can embed an "overview" dashboard for a specific entity
+* The `DashboardViewer` component which can embed any dashboard
 
 ## Setup
 
