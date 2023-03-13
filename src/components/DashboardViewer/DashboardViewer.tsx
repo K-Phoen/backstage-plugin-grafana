@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Kévin Gomez <contact@kevingomez.fr>
+ * Copyright 2023 Kévin Gomez <contact@kevingomez.fr>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-export { grafanaPlugin, EntityGrafanaDashboardsCard, EntityGrafanaAlertsCard } from './plugin';
-export { DashboardViewer } from './components/DashboardViewer';
-export {
-  isDashboardSelectorAvailable,
-  isAlertSelectorAvailable,
-  alertSelectorFromEntity,
-  GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR,
-  GRAFANA_ANNOTATION_TAG_SELECTOR,
-} from './components/grafanaData';
+import React from 'react';
+
+export const DashboardViewer = ({ embedUrl }: { embedUrl: string }) => {
+  return (
+    <iframe
+      title={embedUrl}
+      src={embedUrl}
+      width="100%"
+      height="100%"
+      referrerPolicy="strict-origin-when-cross-origin"
+    />
+  );
+};

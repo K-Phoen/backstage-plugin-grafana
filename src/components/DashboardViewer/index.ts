@@ -14,12 +14,4 @@
  * limitations under the License.
  */
 
-export { grafanaPlugin, EntityGrafanaDashboardsCard, EntityGrafanaAlertsCard } from './plugin';
-export { DashboardViewer } from './components/DashboardViewer';
-export {
-  isDashboardSelectorAvailable,
-  isAlertSelectorAvailable,
-  alertSelectorFromEntity,
-  GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR,
-  GRAFANA_ANNOTATION_TAG_SELECTOR,
-} from './components/grafanaData';
+export { DashboardViewer } from './DashboardViewer';
