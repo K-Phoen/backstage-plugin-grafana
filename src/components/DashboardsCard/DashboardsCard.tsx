@@ -24,7 +24,7 @@ import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
 import { Tooltip } from '@material-ui/core';
 import { Dashboard } from '../../types';
-import { GRAFANA_ANNOTATION_TAG_SELECTOR, isDashboardSelectorAvailable, tagSelectorFromEntity } from '../grafanaData';
+import { dashboardSelectorFromEntity, GRAFANA_ANNOTATION_DASHBOARD_SELECTOR, isDashboardSelectorAvailable } from '../grafanaData';
 
 export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, dashboards: Dashboard[], opts: DashboardCardOpts}) => {
   const columns: TableColumn<Dashboard>[] = [
@@ -41,7 +41,7 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
   ];
 
   const titleElm = (
-    <Tooltip title={`Note: only dashboard with the "${tagSelectorFromEntity(entity)}" tag are displayed.`}>
+    <Tooltip title={`Note: only dashboard with the "${dashboardSelectorFromEntity(entity)}" selector are displayed.`}>
       <span>{opts.title || 'Dashboards'}</span>
     </Tooltip>
   );
@@ -66,7 +66,7 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
 
 const Dashboards = ({entity, opts}: {entity: Entity, opts: DashboardCardOpts}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(tagSelectorFromEntity(entity)));
+  const { value, loading, error } = useAsync(async () => await grafanaApi.listDashboards(dashboardSelectorFromEntity(entity)));
 
   if (loading) {
     return <Progress />;
@@ -91,7 +91,7 @@ export const DashboardsCard = (opts?: DashboardCardOpts) => {
   const { entity } = useEntity();
 
   return !isDashboardSelectorAvailable(entity) ? (
-    <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />
+    <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_DASHBOARD_SELECTOR} />
   ) : (
     <Dashboards entity={entity} opts={opts || {}} />
   );

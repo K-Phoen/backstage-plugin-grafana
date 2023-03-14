@@ -33,11 +33,39 @@ const overviewContent = (
 );
 ```
 
-Grafana dashboards are correlated to Backstage entities using an annotation added in the entity's `catalog-info.yaml` file:
+Grafana dashboards are correlated to Backstage entities using a selector defined by an annotation added in the entity's `catalog-info.yaml` file.
+The `EntityGrafanaDashboardsCard` component will then display dashboards matching the given selector.
+
+The following selector will return dashboards that have a `my-service` or a `my-service-slo` tag and have a `generated` tag.
 
 ```yml
 annotations:
-  grafana/tag-selector: "my-tag"
+  grafana/dashboard-selector: "(tags @> 'my-service' || tags @> 'my-service-slo') && tags @> 'generated'"
 ```
 
-The `EntityGrafanaDashboardsCard` component will then display dashboards matching the given tag.
+Supported variables:
+
+* `title`: title of the dashboard
+* `tags`: array of tags defined by the dashboard
+* `url`: URL of the dashboard
+* `folderTitle`: title of the folder in which the dashboard is defined
+* `folderUrl`: URL of the folder in which the dashboard is defined
+
+Supported binary operators:
+
+* `||`: logical or
+* `&&`: logical and
+* `==`: equality (`===` operator in Javascript)
+* `!=`: inequality (`!==` operator in Javascript)
+* `@>`: inclusion (`left.includes(right)` in Javascript)
+
+Supported unary operators:
+
+* `!`: logical negation
+
+Note that the `tags @> "my-service"` selector can be simplified as:
+
+```yaml
+annotations:
+  grafana/dashboard-selector: my-service
+```

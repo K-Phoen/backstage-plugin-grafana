@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Kévin Gomez <contact@kevingomez.fr>
+ * Copyright 2023 Kévin Gomez <contact@kevingomez.fr>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,4 @@
  * limitations under the License.
  */
 
-export interface Dashboard {
-  title: string;
-  url: string;
-  folderTitle: string;
-  folderUrl: string;
-  tags: string[];
-}
-
-export interface Alert {
-  name: string;
-  state: string;
-  url: string;
-}
+export { QueryEvaluator } from './QueryEvaluator';

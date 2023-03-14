@@ -48,6 +48,7 @@ spec:
 ```
 
 > **Warning**
+>
 > Since the `EntityOverviewDashboardViewer` relies on an `iframe` to embed the dashboard,
 > Grafana must be configured explicitly to allow embeds.
 >
