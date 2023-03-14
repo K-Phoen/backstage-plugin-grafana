@@ -15,10 +15,11 @@
  */
 
 import { createApiRef, DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
+import { QueryEvaluator } from './query';
 import { Alert, Dashboard } from './types';
 
 export interface GrafanaApi {
-  dashboardsByTag(tag: string): Promise<Dashboard[]>;
+  listDashboards(query: string): Promise<Dashboard[]>;
   alertsForSelector(selector: string): Promise<Alert[]>;
 }
 
@@ -67,15 +68,21 @@ export type Options = {
 
 const DEFAULT_PROXY_PATH = '/grafana/api';
 
+const isSingleWord = (input: string): boolean => {
+  return input.match(/^[\w-]+$/g) !== null;
+}
+
 class Client {
   private readonly discoveryApi: DiscoveryApi;
   private readonly identityApi: IdentityApi;
   private readonly proxyPath: string;
+  private readonly queryEvaluator: QueryEvaluator;
 
   constructor(opts: Options) {
     this.discoveryApi = opts.discoveryApi;
     this.identityApi = opts.identityApi;
     this.proxyPath = opts.proxyPath ?? DEFAULT_PROXY_PATH;
+    this.queryEvaluator = new QueryEvaluator();
   }
 
   public async fetch<T = any>(input: string, init?: RequestInit): Promise<T> {
@@ -90,7 +97,39 @@ class Client {
     return await resp.json();
   }
 
-  public async apiUrl() {
+  async listDashboards(domain: string, query: string): Promise<Dashboard[]> {
+    if (isSingleWord(query)) {
+      return this.dashboardsByTag(domain, query);
+    }
+
+    return this.dashboardsForQuery(domain, query);
+  }
+
+  async dashboardsForQuery(domain: string, query: string): Promise<Dashboard[]> {
+    const parsedQuery = this.queryEvaluator.parse(query);
+    const response = await this.fetch<Dashboard[]>(`/api/search?type=dash-db`);
+    const allDashboards = this.fullyQualifiedDashboardURLs(domain, response);
+
+    return allDashboards.filter((dashboard) => {
+      return this.queryEvaluator.evaluate(parsedQuery, dashboard) === true;
+    });
+  }
+
+  async dashboardsByTag(domain: string, tag: string): Promise<Dashboard[]> {
+    const response = await this.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
+
+    return this.fullyQualifiedDashboardURLs(domain, response);
+  }
+
+  private fullyQualifiedDashboardURLs(domain: string, dashboards: Dashboard[]): Dashboard[] {
+    return dashboards.map(dashboard => ({
+      ...dashboard,
+      url: domain + dashboard.url,
+      folderUrl: domain + dashboard.folderUrl,
+    }));
+  }
+
+  private async apiUrl() {
     const proxyUrl = await this.discoveryApi.getBaseUrl('proxy');
     return proxyUrl + this.proxyPath;
   }
@@ -118,17 +157,8 @@ export class GrafanaApiClient implements GrafanaApi {
     this.client = new Client(opts);
   }
 
-  async dashboardsByTag(tag: string): Promise<Dashboard[]> {
-    const response = await this.client.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
-
-    return response.map(dashboard => (
-      {
-        title: dashboard.title,
-        url: this.domain + dashboard.url,
-        folderTitle: dashboard.folderTitle,
-        folderUrl: this.domain + dashboard.folderUrl,
-      }
-    ));
+  async listDashboards(query: string): Promise<Dashboard[]> {
+    return this.client.listDashboards(this.domain, query);
   }
 
   async alertsForSelector(dashboardTag: string): Promise<Alert[]> {
@@ -153,17 +183,8 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
     this.client = new Client(opts);
   }
 
-  async dashboardsByTag(tag: string): Promise<Dashboard[]> {
-    const response = await this.client.fetch<Dashboard[]>(`/api/search?type=dash-db&tag=${tag}`);
-
-    return response.map(dashboard => (
-      {
-        title: dashboard.title,
-        url: this.domain + dashboard.url,
-        folderTitle: dashboard.folderTitle,
-        folderUrl: this.domain + dashboard.folderUrl,
-      }
-    ));
+  async listDashboards(query: string): Promise<Dashboard[]> {
+    return this.client.listDashboards(this.domain, query);
   }
 
   async alertsForSelector(selector: string): Promise<Alert[]> {
