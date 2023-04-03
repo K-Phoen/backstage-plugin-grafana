@@ -23,7 +23,7 @@ import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
 import { Tooltip } from '@material-ui/core';
 import { Dashboard } from '../../types';
-import { GRAFANA_ANNOTATION_TAG_SELECTOR, isDashboardSelectorAvailable, tagSelectorFromEntity } from '../grafanaData';
+import { dashboardSelectorFromEntity, GRAFANA_ANNOTATION_DASHBOARD_SELECTOR, isDashboardSelectorAvailable } from '../grafanaData';
 
 export const DashboardsTable = ({tags, dashboards, opts}: {tags: string, dashboards: Dashboard[], opts: DashboardCardOpts}) => {
   const columns: TableColumn<Dashboard>[] = [
@@ -65,7 +65,7 @@ export const DashboardsTable = ({tags, dashboards, opts}: {tags: string, dashboa
 
 const Dashboards = ({tags, opts}: {tags: string, opts: DashboardCardOpts}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.dashboardsByTag(tags));
+  const { value, loading, error } = useAsync(async () => await grafanaApi.listDashboards(tags));
 
   if (loading) {
     return <Progress />;
@@ -87,12 +87,16 @@ export type DashboardCardOpts = {
 };
 
 export const DashboardsCard = ({tags, opts}: {tags?: string, opts?: DashboardCardOpts}) => {
-  if(!tags){
+  if(isAbsent(tags)){
     const { entity } = useEntity();
     if(!isDashboardSelectorAvailable(entity)){
-      return <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />;
+      return <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_DASHBOARD_SELECTOR} />;
     }
-    tags = tagSelectorFromEntity(entity);
+    tags = dashboardSelectorFromEntity(entity);
   }
-  return <Dashboards tags={tags} opts={opts || {}} />;
+  return <Dashboards tags={tags || ""} opts={opts || {}} />;
 };
+
+function isAbsent(tags? : string) : boolean {
+  return (tags === null || tags === undefined);
+}
