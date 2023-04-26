@@ -20,7 +20,7 @@ import { Alert, Dashboard } from './types';
 
 export interface GrafanaApi {
   listDashboards(query: string): Promise<Dashboard[]>;
-  alertsForSelector(selector: string): Promise<Alert[]>;
+  alertsForSelectors(selectors: string | string[]): Promise<Alert[]>;
 }
 
 interface AlertRuleGroupConfig {
@@ -44,6 +44,17 @@ interface UnifiedGrafanaAlert {
 interface AlertRule {
   labels: Record<string, string>;
   grafana_alert: UnifiedGrafanaAlert;
+}
+
+type UnifiedAlertState = 'Normal' | 'Pending' | 'Alerting' | 'NoData' | 'Error' | 'n/a';
+
+interface AlertInstance {
+  labels: Record<string,string>;
+  state: UnifiedAlertState;
+}
+
+interface AlertsData {
+  data: { alerts: AlertInstance[]};
 }
 
 export const grafanaApiRef = createApiRef<GrafanaApi>({
@@ -161,7 +172,7 @@ export class GrafanaApiClient implements GrafanaApi {
     return this.client.listDashboards(this.domain, query);
   }
 
-  async alertsForSelector(dashboardTag: string): Promise<Alert[]> {
+  async alertsForSelectors(dashboardTag: string): Promise<Alert[]> {
     const response = await this.client.fetch<GrafanaAlert[]>(`/api/alerts?dashboardTag=${dashboardTag}`);
 
     return response.map(alert => (
@@ -187,19 +198,81 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
     return this.client.listDashboards(this.domain, query);
   }
 
-  async alertsForSelector(selector: string): Promise<Alert[]> {
-    const response = await this.client.fetch<Record<string, AlertRuleGroupConfig[]>>('/api/ruler/grafana/api/v1/rules');
-    const rules = Object.values(response).flat().map(ruleGroup => ruleGroup.rules).flat();
-    const [label, labelValue] = selector.split('=');
+  async alertsForSelectors(selectors: string | string[]): Promise<Alert[]> {
+    const labelSelectors = Array.from(selectors);
 
-    const matchingRules = rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
+    const rulesResponse = await this.client.fetch<Record<string, AlertRuleGroupConfig[]>>('/api/ruler/grafana/api/v1/rules');
+    const rules = Object.values(rulesResponse).flat().map(ruleGroup => ruleGroup.rules).flat();
+    const alertsResponse = await this.client.fetch<AlertsData>('/api/prometheus/grafana/api/v1/alerts');
 
-    return matchingRules.map(rule => {
-      return {
-        name: rule.grafana_alert.title,
-        url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
-        state: "n/a",
-      };
-    })
+    return labelSelectors.map(selector => {
+      const [label, labelValue] = selector.split('=');
+
+      const matchingRules = rules.filter(rule => rule.labels && rule.labels[label] === labelValue);
+      const alertInstances = alertsResponse.data.alerts.filter(alertInstance => alertInstance.labels[label] === labelValue);
+  
+      return matchingRules.map(rule => {
+        const matchingAlertInstances = alertInstances.filter(
+          alertInstance => alertInstance.labels.alertname === rule.grafana_alert.title
+        );
+  
+        const aggregatedAlertStates = matchingAlertInstances.reduce(
+          (previous, alert) => {
+            switch (alert.state) {
+              case 'Normal':
+                previous.normal += 1;
+                break;
+              case 'Pending':
+                previous.pending += 1;
+                break;
+              case 'Alerting':
+                previous.alerting += 1;
+                break;
+              case 'NoData':
+                previous.noData += 1;
+                break;
+              case 'Error':
+                previous.error += 1;
+                break;
+              default:
+                previous.invalid += 1;
+            }
+      
+            return previous;
+          },
+          { normal: 0, pending: 0, alerting: 0, noData: 0, error: 0, invalid: 0 },
+        );      
+  
+        return {
+          name: rule.grafana_alert.title,
+          url: `${this.domain}/alerting/grafana/${rule.grafana_alert.uid}/view`,
+          state: this.getState(aggregatedAlertStates, matchingAlertInstances.length),
+        };
+      })
+    }).flat();
+  }
+
+  private getState(states: {
+    normal: number,
+    pending: number,
+    alerting: number,
+    noData: number,
+    error: number,
+    invalid: number,
+  }, totalAlerts: number): UnifiedAlertState {
+    if (states.alerting > 0) {
+      return "Alerting"
+    } else if (states.error > 0) {
+      return 'Error'
+    } else if (states.pending > 0) {
+      return 'Pending'
+    }
+    if (states.noData === totalAlerts) {
+      return 'NoData'
+    } else if (states.normal === totalAlerts || states.normal + states.noData === totalAlerts) {
+      return 'Normal'
+    } 
+
+    return 'n/a'
   }
 }
