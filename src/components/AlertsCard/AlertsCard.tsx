@@ -92,7 +92,7 @@ const Alerts = ({entity, opts}: {entity: Entity, opts: AlertsCardOpts}) => {
   const unifiedAlertingEnabled = configApi.getOptionalBoolean('grafana.unifiedAlerting') || false;
   const alertSelector = unifiedAlertingEnabled ? alertSelectorFromEntity(entity) : tagSelectorFromEntity(entity);
 
-  const { value, loading, error } = useAsync(async () => await grafanaApi.alertsForSelector(alertSelector));
+  const { value, loading, error } = useAsync(async () => await grafanaApi.alertsForSelectors(alertSelector));
 
   if (loading) {
     return <Progress />;
