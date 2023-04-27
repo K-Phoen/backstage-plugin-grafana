@@ -69,3 +69,6 @@ Note that the `tags @> "my-service"` selector can be simplified as:
 annotations:
   grafana/dashboard-selector: my-service
 ```
+
+It's also possible to inject a hook to build other additional dashboards if that's required. For that, use the
+field `additionalDashboards` in the component `EntityGrafanaDashboardsCard`.

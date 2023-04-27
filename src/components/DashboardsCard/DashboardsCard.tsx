@@ -66,7 +66,12 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
 
 const Dashboards = ({entity, opts}: {entity: Entity, opts: DashboardCardOpts}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.listDashboards(dashboardSelectorFromEntity(entity)));
+  const { value, loading, error} = useAsync(async () => {
+    const dashboards = await grafanaApi.listDashboards(dashboardSelectorFromEntity(entity));
+    if (opts?.additionalDashboards) {
+      dashboards.push(...(await opts.additionalDashboards(entity)))
+    }
+  });
 
   if (loading) {
     return <Progress />;
@@ -85,6 +90,7 @@ export type DashboardCardOpts = {
   pageSize?: number;
   sortable?: boolean;
   title?: string;
+  additionalDashboards?: (entity: Entity) => Dashboard[] | Promise<Dashboard[]>;
 };
 
 export const DashboardsCard = (opts?: DashboardCardOpts) => {
