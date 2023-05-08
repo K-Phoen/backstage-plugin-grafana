@@ -28,7 +28,17 @@ grafana:
   # Optional. Default: false
   unifiedAlerting: false
 ```
+Add the plugin import to your EntityPage.tsx as defined in https://github.com/k-phoen/backstage-plugin-grafana/blob/main/docs/embed-dashboards-on-page.md
+```
+// packages/app/src/EntityPage.tsx
 
+import {
+  EntityGrafanaDashboardsCard,
+  EntityGrafanaAlertsCard
+} from '@k-phoen/backstage-plugin-grafana';
+
+```
+ 
 Expose the plugin to Backstage:
 
 ```ts
