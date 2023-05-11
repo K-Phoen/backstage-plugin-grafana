@@ -1,9 +1,23 @@
 # Setup
 
-Add the plugin to your frontend app:
+App Locations
+  Frontend app: packages/app
+  Backend app:  packages/backend
 
+Add the plugin to your frontend app:
 ```bash
 cd packages/app && yarn add @k-phoen/backstage-plugin-grafana
+```
+
+Add the plugin to your package.json in the frontend so your Docker build will have the reqired dependancy.
+location: packages/app/package.json
+```
+...
+"dependencies": {
+    ...
+    "@material-ui/core": "^4.12.2",
+    "@material-ui/icons": "^4.9.1",
+    "@k-phoen/backstage-plugin-grafana": "^0.1.22",
 ```
 
 Configure the plugin in `app-config.yaml`. The proxy endpoint described below will allow the frontend
@@ -18,7 +32,7 @@ proxy:
     target: https://grafana.host/
     headers:
       Authorization: Bearer ${GRAFANA_TOKEN}
-
+# The below block is required for the docker build to complete without error.
 grafana:
   # Publicly accessible domain
   domain: https://monitoring.company.com
@@ -27,6 +41,16 @@ grafana:
   # See: https://grafana.com/blog/2021/06/14/the-new-unified-alerting-system-for-grafana-everything-you-need-to-know/
   # Optional. Default: false
   unifiedAlerting: false
+```
+If you see this error you didn't add the grafana key to your app-config.yaml
+```
+Loaded config from app-config.yaml
+
+Error: Configuration does not match schema
+
+  Config must have required property 'grafana' { missingProperty=grafana } at 
+
+error Command failed with exit code 1.
 ```
 Add the plugin import to your EntityPage.tsx as defined in https://github.com/k-phoen/backstage-plugin-grafana/blob/main/docs/embed-dashboards-on-page.md
 ```
