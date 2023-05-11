@@ -1,28 +1,33 @@
 # Setup
 
-App Locations
-  Frontend app: packages/app
-  Backend app:  packages/backend
+## App Locations
+- Frontend app: `packages/app`
+- Backend app: `packages/backend`
+
+## Installation
 
 Add the plugin to your frontend app:
+
 ```bash
 cd packages/app && yarn add @k-phoen/backstage-plugin-grafana
 ```
 
-Add the plugin to your package.json in the frontend so your Docker build will have the reqired dependancy.
-location: packages/app/package.json
-```
+Add the plugin to your `package.json` in the frontend so your Docker build will have the required dependency.
+
+Location: `packages/app/package.json`
+
+```json
 ...
 "dependencies": {
     ...
     "@material-ui/core": "^4.12.2",
     "@material-ui/icons": "^4.9.1",
-    "@k-phoen/backstage-plugin-grafana": "^0.1.22",
+    "@k-phoen/backstage-plugin-grafana": "^0.1.22"
+}
 ```
 
-Configure the plugin in `app-config.yaml`. The proxy endpoint described below will allow the frontend
-to authenticate with Grafana without exposing your API key to users.
-[Create an API key](https://grafana.com/docs/grafana/latest/http_api/auth/#create-api-token) if you don't already have one. `Viewer` access will be enough.
+## Configuration
+Configure the plugin in `app-config.yaml`. The proxy endpoint described below will allow the frontend to authenticate with Grafana without exposing your API key to users. Follow these steps to create an [API key](https://grafana.com/docs/grafana/latest/http_api/auth/#create-api-token) if you don't already have one. `Viewer` access will be enough.
 
 ```yaml
 # app-config.yaml
@@ -42,18 +47,16 @@ grafana:
   # Optional. Default: false
   unifiedAlerting: false
 ```
-If you see this error you didn't add the grafana key to your app-config.yaml
+If you see this error, you didn't add the Grafana key to your `app-config.yaml`:
 ```
 Loaded config from app-config.yaml
-
 Error: Configuration does not match schema
-
   Config must have required property 'grafana' { missingProperty=grafana } at 
-
 error Command failed with exit code 1.
 ```
-Add the plugin import to your EntityPage.tsx as defined in https://github.com/k-phoen/backstage-plugin-grafana/blob/main/docs/embed-dashboards-on-page.md
-```
+Add the plugin import to your `EntityPage.tsx` as defined in the [official documentation](https://github.com/k-phoen/backstage-plugin-grafana/blob/main/docs/embed-dashboards-on-page.md).
+
+```tsx
 // packages/app/src/EntityPage.tsx
 
 import {
