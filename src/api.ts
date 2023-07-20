@@ -126,6 +126,7 @@ class Client {
       ...dashboard,
       url: domain + dashboard.url,
       folderUrl: domain + dashboard.folderUrl,
+      folderTitle: dashboard.folderTitle ?? '',
     }));
   }
 
