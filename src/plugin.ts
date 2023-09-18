@@ -15,7 +15,7 @@
  */
 
 import { configApiRef, createApiFactory, createComponentExtension, createPlugin, discoveryApiRef, identityApiRef } from '@backstage/core-plugin-api';
-import { UnifiedAlertingGrafanaApiClient, grafanaApiRef, GrafanaApiClient } from './api';
+import {grafanaApiRef, GrafanaApiClient, GrafanaHost, DEFAULT_PROXY_PATH} from './api';
 
 export const grafanaPlugin = createPlugin({
   id: 'grafana',
@@ -24,24 +24,39 @@ export const grafanaPlugin = createPlugin({
       api: grafanaApiRef,
       deps: { discoveryApi: discoveryApiRef, identityApi: identityApiRef, configApi: configApiRef },
       factory: ({ discoveryApi, identityApi, configApi }) => {
-        const unifiedAlertingEnabled = configApi.getOptionalBoolean('grafana.unifiedAlerting') || false;
+        const hosts: GrafanaHost[] = configApi.getOptional('grafana.hosts') || [];
+        const domain = configApi.getOptionalString('grafana.domain');
 
-        if (!unifiedAlertingEnabled) {
-          return new GrafanaApiClient({
-            discoveryApi: discoveryApi,
-            identityApi: identityApi,
-            domain: configApi.getString('grafana.domain'),
-            proxyPath: configApi.getOptionalString('grafana.proxyPath'),
-          });
+        // let's do some config validations:
+        if (!domain && !hosts) {
+          throw new Error("At least `grafana.domain` or `grafana.hosts` must be defined")
         }
 
-        return new UnifiedAlertingGrafanaApiClient({
+        hosts.forEach(host => {
+          if (!host.domain) {
+            throw new Error("Each `grafana.hosts.domain` must be defined in the configuration")
+          }
+          if (!host.id) {
+            throw new Error("Each `grafana.hosts.id` must be defined in the configuration")
+          }
+        });
+
+        //for backward compatibility
+        if (domain) {
+          hosts.push({
+            id: 'default',
+            domain: domain,
+            proxyPath: configApi.getOptionalString('grafana.proxyPath')  ?? DEFAULT_PROXY_PATH,
+            unifiedAlerting: configApi.getOptionalBoolean('grafana.unifiedAlerting')
+          })
+        }
+
+        return new GrafanaApiClient({
           discoveryApi: discoveryApi,
           identityApi: identityApi,
-          domain: configApi.getString('grafana.domain'),
-          proxyPath: configApi.getOptionalString('grafana.proxyPath'),
+          hosts: hosts,
         });
-      },
+      }
     }),
   ],
 });

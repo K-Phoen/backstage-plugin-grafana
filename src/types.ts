@@ -27,3 +27,12 @@ export interface Alert {
   state: string;
   url: string;
 }
+
+export interface AlertsCardOpts {
+  paged?: boolean;
+  searchable?: boolean;
+  pageSize?: number;
+  sortable?: boolean;
+  title?: string;
+  showState?: boolean;
+}

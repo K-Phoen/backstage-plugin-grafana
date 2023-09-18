@@ -15,24 +15,54 @@
  */
 
 export interface Config {
-    grafana: {
-        /**
-         * Domain used by users to access Grafana web UI.
-         * Example: https://monitoring.eu.my-company.com/
-         * @visibility frontend
-         */
-        domain: string;
+  grafana: {
+    /**
+     * Domain used by users to access Grafana web UI.
+     * Example: https://monitoring.eu.my-company.com/
+     * @visibility frontend
+     */
+    domain?: string;
 
-        /**
-         * Path to use for requests via the proxy, defaults to /grafana/api
-         * @visibility frontend
-         */
-        proxyPath?: string;
+    /**
+     * Path to use for requests via the proxy, defaults to /grafana/api
+     * @visibility frontend
+     */
+    proxyPath?: string;
 
-        /**
-         * Is Grafana using unified alerting?
-         * @visibility frontend
-         */
-        unifiedAlerting?: boolean;
-    }
+    /**
+     * Is Grafana using unified alerting?
+     * @visibility frontend
+     */
+    unifiedAlerting?: boolean;
+
+    /**
+     * List of the grafana hosts
+     * @visibility frontend
+     */
+    hosts: {
+      /**
+       * Unique ID of the grafana host. This value should be used in the catalog Yaml files to match grafana/source-id.
+       * @visibility frontend
+       */
+      id: string;
+      /**
+       * Domain used by users to access Grafana web UI.
+       * Example: https://monitoring.eu.my-company.com/
+       * @visibility frontend
+       */
+      domain: string;
+
+      /**
+       * Path to use for requests via the proxy, defaults to /grafana/api
+       * @visibility frontend
+       */
+      proxyPath?: string;
+
+      /**
+       * Is Grafana using unified alerting?
+       * @visibility frontend
+       */
+      unifiedAlerting?: boolean;
+    }[];
+  };
 }

@@ -18,36 +18,56 @@ import React from 'react';
 import { Progress, TableColumn, Table, StatusOK, StatusPending, StatusWarning, StatusError, StatusAborted, MissingAnnotationEmptyState, Link } from '@backstage/core-components';
 import { Entity } from '@backstage/catalog-model';
 import { useEntity } from '@backstage/plugin-catalog-react';
-import { configApiRef, useApi } from '@backstage/core-plugin-api';
 import { grafanaApiRef } from '../../api';
 import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
-import { Alert as GrafanaAlert } from '../../types';
-import { GRAFANA_ANNOTATION_TAG_SELECTOR, GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR, isAlertSelectorAvailable, isDashboardSelectorAvailable, tagSelectorFromEntity, alertSelectorFromEntity } from '../grafanaData';
+import {Alert as GrafanaAlert, AlertsCardOpts} from '../../types';
+import {
+  GRAFANA_ANNOTATION_TAG_SELECTOR,
+  GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR,
+  isAlertSelectorAvailable,
+  isDashboardSelectorAvailable,
+  tagSelectorFromEntity,
+  alertSelectorFromEntity,
+  grafanaSourceIdFromEntity
+} from '../grafanaData';
+import {useApi} from "@backstage/core-plugin-api";
+import {Tooltip} from "@material-ui/core";
 
 const AlertStatusBadge = ({ alert }: { alert: GrafanaAlert }) => {
   let statusElmt: React.ReactElement;
+  let tooltipTitle: string;
 
   switch (alert.state) {
     case "ok":
+    case "Normal":
       statusElmt = <StatusOK />;
+      tooltipTitle = "Status OK"
       break;
     case "paused":
       statusElmt = <StatusPending />;
+      tooltipTitle = "Status Pending"
       break;
     case "no_data":
     case "pending":
+    case "Pending":
+    case "NoData":
       statusElmt = <StatusWarning />;
+      tooltipTitle = "Status Warning"
       break;
     case "alerting":
+    case "Alerting":
+    case "Error":
       statusElmt = <StatusError />;
+      tooltipTitle = "Status Error"
       break;
     default:
       statusElmt = <StatusAborted />;
+      tooltipTitle = "Status Aborted"
   }
 
   return (
-    <div>{statusElmt}</div>
+    <Tooltip title={tooltipTitle}><div>{statusElmt}</div></Tooltip>
   );
 };
 
@@ -61,9 +81,10 @@ export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: Alert
     },
   ];
 
-  if (opts.showState) {
+   if (opts.showState) {
     columns.push({
       title: 'State',
+      cellStyle: {textAlign: 'center'},
       render: (row: GrafanaAlert): React.ReactNode => <AlertStatusBadge alert={row} />,
     });
   }
@@ -88,11 +109,10 @@ export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: Alert
 
 const Alerts = ({entity, opts}: {entity: Entity, opts: AlertsCardOpts}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const configApi = useApi(configApiRef);
-  const unifiedAlertingEnabled = configApi.getOptionalBoolean('grafana.unifiedAlerting') || false;
-  const alertSelector = unifiedAlertingEnabled ? alertSelectorFromEntity(entity) : tagSelectorFromEntity(entity);
 
-  const { value, loading, error } = useAsync(async () => await grafanaApi.alertsForSelector(alertSelector));
+  const alertSelector = isAlertSelectorAvailable(entity) ? alertSelectorFromEntity(entity) : tagSelectorFromEntity(entity);
+
+  const { value, loading, error } = useAsync(async () => await grafanaApi.alertsForSelector(alertSelector, grafanaSourceIdFromEntity(entity)));
 
   if (loading) {
     return <Progress />;
@@ -103,19 +123,10 @@ const Alerts = ({entity, opts}: {entity: Entity, opts: AlertsCardOpts}) => {
   return <AlertsTable alerts={value || []} opts={opts} />;
 };
 
-export type AlertsCardOpts = {
-  paged?: boolean;
-  searchable?: boolean;
-  pageSize?: number;
-  sortable?: boolean;
-  title?: string;
-  showState?: boolean;
-};
-
-export const AlertsCard = (opts?: AlertsCardOpts) => {
+export const AlertsCard = (opts: AlertsCardOpts) => {
   const { entity } = useEntity();
-  const configApi = useApi(configApiRef);
-  const unifiedAlertingEnabled = configApi.getOptionalBoolean('grafana.unifiedAlerting') || false;
+
+  const unifiedAlertingEnabled = isAlertSelectorAvailable(entity) || false;
 
   if (!unifiedAlertingEnabled && !isDashboardSelectorAvailable(entity)) {
     return <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_TAG_SELECTOR} />;
@@ -125,7 +136,14 @@ export const AlertsCard = (opts?: AlertsCardOpts) => {
     return <MissingAnnotationEmptyState annotation={GRAFANA_ANNOTATION_ALERT_LABEL_SELECTOR} />;
   }
 
-  const finalOpts = {...opts, ...{showState: opts?.showState && !unifiedAlertingEnabled}};
+  return <Alerts entity={entity} opts={opts} />;
+};
 
-  return <Alerts entity={entity} opts={finalOpts} />;
+AlertsCard.defaultProps = {
+  paged: false,
+  searchable: false,
+  pageSize: 5,
+  sortable: false,
+  title: 'Alerts',
+  showState: true
 };

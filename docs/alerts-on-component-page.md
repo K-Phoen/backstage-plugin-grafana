@@ -41,6 +41,7 @@ If Grafana's [Unified Alerting](https://grafana.com/blog/2021/06/14/the-new-unif
 
 ```yaml
 annotations:
+  # grafana/source-id: 'my-instance-id' # use in case of multiple Grafana instances
   grafana/alert-label-selector: "service=awesome-service"
 ```
 
@@ -52,6 +53,7 @@ If Grafana's [Unified Alerting](https://grafana.com/blog/2021/06/14/the-new-unif
 
 ```yaml
 annotations:
+  # grafana/source-id: 'my-instance-id' # use in case of multiple Grafana instances
   grafana/tag-selector: "my-tag"
 ```
 
