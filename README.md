@@ -1,6 +1,7 @@
 # Grafana plugin for Backstage
 
-The Grafana plugin is a frontend plugin that lists Grafana alerts and dashboards. It includes two components that can be integrated into Backstage:
+The Grafana plugin is a frontend plugin that lists Grafana alerts and dashboards. It supports multiple Grafana hosts configuration.
+It includes several components that can be integrated into Backstage:
 
 * The `EntityGrafanaDashboardsCard` component which can display dashboards for a specific entity
 * The `EntityGrafanaAlertsCard` component which can display recent alerts for a specific entity

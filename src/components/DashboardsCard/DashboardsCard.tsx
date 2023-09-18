@@ -24,7 +24,12 @@ import { useAsync } from 'react-use';
 import { Alert } from '@material-ui/lab';
 import { Tooltip } from '@material-ui/core';
 import { Dashboard } from '../../types';
-import { dashboardSelectorFromEntity, GRAFANA_ANNOTATION_DASHBOARD_SELECTOR, isDashboardSelectorAvailable } from '../grafanaData';
+import {
+  dashboardSelectorFromEntity,
+  GRAFANA_ANNOTATION_DASHBOARD_SELECTOR,
+  grafanaSourceIdFromEntity,
+  isDashboardSelectorAvailable
+} from '../grafanaData';
 
 export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, dashboards: Dashboard[], opts: DashboardCardOpts}) => {
   const columns: TableColumn<Dashboard>[] = [
@@ -66,7 +71,7 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
 
 const Dashboards = ({entity, opts}: {entity: Entity, opts: DashboardCardOpts}) => {
   const grafanaApi = useApi(grafanaApiRef);
-  const { value, loading, error } = useAsync(async () => await grafanaApi.listDashboards(dashboardSelectorFromEntity(entity)));
+  const { value, loading, error } = useAsync(async () => await grafanaApi.listDashboards(dashboardSelectorFromEntity(entity), grafanaSourceIdFromEntity(entity)));
 
   if (loading) {
     return <Progress />;

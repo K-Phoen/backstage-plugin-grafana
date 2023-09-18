@@ -40,6 +40,7 @@ The following selector will return dashboards that have a `my-service` or a `my-
 
 ```yml
 annotations:
+  # grafana/source-id: 'my-instance-id' # use in case of multiple Grafana instances  
   grafana/dashboard-selector: "(tags @> 'my-service' || tags @> 'my-service-slo') && tags @> 'generated'"
 ```
 
@@ -67,5 +68,6 @@ Note that the `tags @> "my-service"` selector can be simplified as:
 
 ```yaml
 annotations:
+  # grafana/source-id: 'my-instance-id' # use in case of multiple Grafana instances
   grafana/dashboard-selector: my-service
 ```
