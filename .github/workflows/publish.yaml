@@ -35,6 +35,6 @@ jobs:
         uses: JS-DevTools/npm-publish@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          registry: "https://npm.pkg.github.com/HBK-IDP"
+          registry: "https://npm.pkg.github.com"
           access: "restricted"
 
