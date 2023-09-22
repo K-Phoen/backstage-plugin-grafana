@@ -36,6 +36,5 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           registry: "https://npm.pkg.github.com/HBK-IDP"
-          tag: "v%s"
           access: "restricted"
 
