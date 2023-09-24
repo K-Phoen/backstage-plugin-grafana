@@ -26,4 +26,5 @@ export interface Alert {
   name: string;
   state: string;
   url: string;
+  cluster?: string;
 }

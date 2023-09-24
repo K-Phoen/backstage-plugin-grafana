@@ -68,6 +68,13 @@ export const AlertsTable = ({alerts, opts}: {alerts: GrafanaAlert[], opts: Alert
     });
   }
 
+  if (opts.showCluster) {
+    columns.push({
+      title: 'Cluster',
+      render: (row: GrafanaAlert): React.ReactNode => <div>{row.cluster || ""}</div>
+    })
+  }
+
   return (
     <Table
       title={opts.title || 'Alerts'}
@@ -110,6 +117,7 @@ export type AlertsCardOpts = {
   sortable?: boolean;
   title?: string;
   showState?: boolean;
+  showCluster?: boolean;
 };
 
 export const AlertsCard = (opts?: AlertsCardOpts) => {

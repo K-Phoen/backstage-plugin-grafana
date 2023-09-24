@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-// @ts-nocheck
-
 import { createApiRef, DiscoveryApi, IdentityApi } from '@backstage/core-plugin-api';
 import { QueryEvaluator } from './query';
 import { Alert, Dashboard } from './types';
@@ -27,7 +25,13 @@ export interface GrafanaApi {
 
 interface AlertRuleGroupConfig {
   name: string;
-  rules: AlertRule[];
+  annotations: {
+    summary: string
+  }
+  labels: {
+    __alert_rule_uid__: string;
+    cluster: string;
+  }
 }
 
 interface GrafanaAlert {
@@ -36,16 +40,7 @@ interface GrafanaAlert {
   name: string;
   state: string;
   url: string;
-}
-
-interface UnifiedGrafanaAlert {
-  uid: string;
-  title: string;
-}
-
-interface AlertRule {
-  labels: Record<string, string>;
-  grafana_alert: UnifiedGrafanaAlert;
+  cluster?: string;
 }
 
 export const grafanaApiRef = createApiRef<GrafanaApi>({
@@ -170,7 +165,7 @@ export class GrafanaApiClient implements GrafanaApi {
       {
         name: alert.name,
         state: alert.state,
-        url: `${this.domain}${alert.url}?panelId=${alert.panelId}&fullscreen&refresh=30s`,
+        url: `${this.domain}${alert.url}?panelId=${alert.panelId}&fullscreen&refresh=30s`
       }
     ));
   }
@@ -199,6 +194,7 @@ export class UnifiedAlertingGrafanaApiClient implements GrafanaApi {
         name: rule.annotations.summary,
         url: `${this.domain}/alerting/grafana/${rule.labels.__alert_rule_uid__}/view`,
         state: "n/a",
+        cluster: rule.labels.cluster
       };
     })
   }
