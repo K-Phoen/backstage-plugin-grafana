@@ -18,13 +18,7 @@ import jsep from 'jsep';
 
 export type EvaluationContext = Record<string, any>;
 
-const includes = (haystack: any, needle: any): boolean => {
-  if (!Array.isArray(haystack)) {
-    throw Error(`@> operator can only be used on an array`);
-  }
-
-  return (haystack as any[]).includes(needle);
-};
+const includes = (haystack: string | string[], needle: string): boolean =>  haystack.includes(needle);
 
 export class QueryEvaluator {
   constructor() {
@@ -43,10 +37,7 @@ export class QueryEvaluator {
       case 'BinaryExpression':
         return this.evaluateBinaryExpression(root as jsep.BinaryExpression, context);
       case 'Identifier':
-        if (!context.hasOwnProperty((root as jsep.Identifier).name)) {
-          throw Error(`identifier ${(root as jsep.Identifier).name} does not exist`);
-        }
-
+        if (!context.hasOwnProperty((root as jsep.Identifier).name)) return ''
         return context[(root as jsep.Identifier).name];
       case 'Literal':
         return (root as jsep.Literal).value;

@@ -29,10 +29,9 @@ type scenario = {
 describe('QueryEvaluator', () => {
   const evaluator = new QueryEvaluator();
 
-  it('throw on unknown literal', () => {
+  it('skip on unknown literal', () => {
     const parsedQuery = evaluator.parse('unknown @> "my-service"');
-
-    expect(() => {evaluator.evaluate(parsedQuery, {})}).toThrow('identifier unknown does not exist');
+    expect(evaluator.evaluate(parsedQuery, {})).toBe(false)
   });
 
   it('throw on unknown operator', () => {
@@ -95,6 +94,21 @@ describe('QueryEvaluator', () => {
           { context: { tags: ['foo', 'baz'] }, expectedResult: true },
         ],
       },
+      {
+        query: 'folderTitle @> "foo"',
+        examples: [
+          { context: { folderTitle: 'test' }, expectedResult: false },
+          { context: { folderTitle: 'foobar' }, expectedResult: true },
+        ]
+      },
+      {
+        query: 'folderTitle @> "foo" && tags @> "bar"',
+        examples: [
+          { context: { folderTitle: 'test' }, expectedResult: false },
+          { context: { folderTitle: 'foobar' }, expectedResult: false },
+          { context: { folderTitle: 'foobar', tags: ['foo', 'bar', 'baz'] }, expectedResult: true },
+        ]
+      }
     ];
 
     testCases.forEach(testCase => {
