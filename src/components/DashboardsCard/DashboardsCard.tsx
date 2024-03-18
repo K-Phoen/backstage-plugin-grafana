@@ -42,7 +42,7 @@ export const DashboardsTable = ({entity, dashboards, opts}: {entity: Entity, das
 
   const titleElm = (
     <Tooltip title={`Note: only dashboard with the "${dashboardSelectorFromEntity(entity)}" selector are displayed.`}>
-      <span>{opts.title || 'Dashboards'}</span>
+      <span>{opts.title || 'Grafana Dashboards'}</span>
     </Tooltip>
   );
 
