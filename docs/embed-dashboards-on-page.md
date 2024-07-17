@@ -6,7 +6,7 @@ Adding the `EntityOverviewDashboardViewer` component to an entity's page will em
 // packages/app/src/components/catalog/EntityPage.tsx
 
 import {
-  EntityGrafanaDashboardsCard,
+  EntityOverviewDashboardViewer,
 } from '@k-phoen/backstage-plugin-grafana';
 
 // ...
